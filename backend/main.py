@@ -228,10 +228,10 @@ stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
 
 if os.environ.get("STRIPE_ENVIRONMENT") == "test":
     stripe.api_key = os.environ.get("STRIPE_TEST_SECRET_KEY")
-    stripe_public_key = os.environ.get("STRIPE_TEST_PUBLIC_KEY")
+    stripe_public_key = os.environ.get("REACT_APP_STRIPE_TEST_PUBLIC_KEY")
 else:
     stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
-    stripe_public_key = os.environ.get("STRIPE_PUBLIC_KEY")
+    stripe_public_key = os.environ.get("REACT_APP_STRIPE_PUBLIC_KEY")
 
 class StripeCheckoutSessionRequest(BaseModel):
     plan: str
