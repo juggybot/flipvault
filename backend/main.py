@@ -41,8 +41,8 @@ def get_db():
 security = HTTPBasic()
 
 def verify_password(credentials: HTTPBasicCredentials):
-    correct_username = "juggy"
-    correct_password = "Idus1234@@"
+    correct_username = os.environ.get("ADMIN_USERNAME") # Use env variable
+    correct_password = os.environ.get("ADMIN_PASSWORD") # Use env variable
     if credentials.username != correct_username or credentials.password != correct_password:
         raise HTTPException(status_code=401, detail="Incorrect username or password")
 
