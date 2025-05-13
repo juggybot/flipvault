@@ -1,0 +1,285 @@
+from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks, Body, Request
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+from database import SessionLocal, init_db
+from pydantic import BaseModel
+import crud, models
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from typing import Optional
+from services.scraper import run_scraper
+from fastapi.responses import JSONResponse
+from sqlalchemy import create_engine 
+from sqlalchemy.ext.declarative import declarative_base
+import json
+from typing import List
+from passlib.context import CryptContext
+import stripe
+import os
+import httpx
+
+app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000", "<your_frontend_production_url>"],  # Update this with your frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Initialize the database
+init_db()
+
+# Dependency to get the database session
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+security = HTTPBasic()
+
+def verify_password(credentials: HTTPBasicCredentials):
+    correct_username = "juggy"
+    correct_password = "Idus1234@@"
+    if credentials.username != correct_username or credentials.password != correct_password:
+        raise HTTPException(status_code=401, detail="Incorrect username or password")
+
+class ProductCreate(BaseModel):
+    name: str
+    image_url: str
+
+class ProductResponse(BaseModel):
+    id: int
+    name: str
+    image_url: str
+    average_ebay_price: Optional[float] = None
+    ebay_listings: Optional[int] = None
+    ebay_sale_amount: Optional[float] = None
+    search_volume_us: Optional[str] = None
+    search_volume_au: Optional[str] = None
+    search_volume_uk: Optional[str] = None
+    popular_keywords: Optional[List[str]] = None
+    last_updated: Optional[str] = None
+    
+class FeeCalculator:
+    PROCESSING_FEE_PERCENT = 0.029
+    PROCESSING_FEE_FIXED = 0.30
+
+    def __init__(self, sale_price: float, marketplace: str):
+        self.sale_price = sale_price
+        self.marketplace = marketplace.lower()
+        self.marketplace_fees = {
+            "stockx": self._calculate_stockx_fee,
+            "ebay": self._calculate_ebay_fee,
+            "depop": self._calculate_depop_fee,
+            "mercari": self._calculate_mercari_fee,
+            "offerup": self._calculate_offerup_fee,
+            "poshmark": self._calculate_poshmark_fee,
+        }
+
+    def calculate_fee(self) -> float:
+        if self.marketplace in self.marketplace_fees:
+            return self.marketplace_fees[self.marketplace]()
+        raise ValueError(f"Unsupported marketplace: {self.marketplace}")
+
+    def _calculate_stockx_fee(self) -> float:
+        return 0.095 * self.sale_price + self._processing_fee()
+
+    def _calculate_ebay_fee(self) -> float:
+        return 0.10 * self.sale_price + 0.35  # Insertion fee
+
+    def _calculate_depop_fee(self) -> float:
+        return 0.10 * self.sale_price + self._processing_fee()
+
+    def _calculate_mercari_fee(self) -> float:
+        return 0.10 * self.sale_price + self._processing_fee()
+
+    def _calculate_offerup_fee(self) -> float:
+        return 0.129 * self.sale_price
+
+    def _calculate_poshmark_fee(self) -> float:
+        return 2.95 if self.sale_price < 15 else 0.20 * self.sale_price
+
+    def _processing_fee(self) -> float:
+        return self.PROCESSING_FEE_PERCENT * self.sale_price + self.PROCESSING_FEE_FIXED
+
+class FeeRequest(BaseModel):
+    sale_price: float
+    marketplace: str
+
+@app.post("/api/calculate_fee/")
+def calculate_fee(fee_request: FeeRequest):
+    try:
+        calculator = FeeCalculator(fee_request.sale_price, fee_request.marketplace)
+        fee = calculator.calculate_fee()
+        return {"fee": fee}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+class UserCreate(BaseModel):
+    username: str
+    password: str
+
+# Password hashing context
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+@app.post("/register")
+def register_user(user: UserCreate, db: Session = Depends(get_db)):
+    existing_user = crud.get_user_by_username(db, username=user.username)
+    if (existing_user):
+        raise HTTPException(status_code=400, detail="Username already registered")
+
+    hashed_password = pwd_context.hash(user.password)
+    new_user = crud.create_user(db, username=user.username, hashed_password=hashed_password)
+    return {"message": "User registered successfully"}
+
+@app.post("/login")
+def login(login_request: LoginRequest, db: Session = Depends(get_db)):
+    user = crud.get_user_by_username(db, username=login_request.username)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    if not pwd_context.verify(login_request.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    return {"success": True, "message": "Login successful"}
+
+@app.post("/products/")
+def create_product(product: ProductCreate, db: Session = Depends(get_db), credentials: HTTPBasicCredentials = Depends(security)):
+    verify_password(credentials)
+    return crud.create_product(db=db, name=product.name, image_url=product.image_url)
+
+@app.delete("/products/{product_id}/delete")
+def delete_product(product_id: int, db: Session = Depends(get_db), credentials: HTTPBasicCredentials = Depends(security)):
+    verify_password(credentials)
+    product = crud.delete_product(db=db, product_id=product_id)
+    if product is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return product
+
+@app.get("/products/")
+def read_products(skip: int = 0, limit: int = 15, db: Session = Depends(get_db)):
+    return crud.get_products(db, skip=skip, limit=limit)
+
+@app.get("/products/{product_id}", response_model=ProductResponse)
+def read_product(product_id: int, db: Session = Depends(get_db)):
+    product = crud.get_product(db, product_id=product_id)
+    if product is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+    
+    try:
+        # Check if popular_keywords is a string, and parse it
+        keywords = json.loads(product.popular_keywords) if isinstance(product.popular_keywords, str) else product.popular_keywords
+    except json.JSONDecodeError:
+        # In case of a decoding error, assign an empty list
+        keywords = []
+
+    # Convert SQLAlchemy object to dictionary
+    product_dict = {
+        "id": product.id,
+        "name": product.name,
+        "image_url": product.image_url,
+        "average_ebay_price": product.average_ebay_price or 0.0,
+        "ebay_listings": product.ebay_listings or 0,
+        "ebay_sale_amount": product.ebay_sale_amount or 0.0,
+        "search_volume_us": product.search_volume_us or 0,
+        "search_volume_au": product.search_volume_au or 0,
+        "search_volume_uk": product.search_volume_uk or 0,
+        "popular_keywords": keywords,
+        "last_updated": product.last_updated or None,
+    }
+    return product_dict
+
+@app.get("/search/")
+def search_products(query: str, db: Session = Depends(get_db)):
+    products = db.query(models.Product).filter(models.Product.name.ilike(f"%{query}%")).all()
+    return products
+
+@app.post("/products/scrape")
+def scrape_products(background_tasks: BackgroundTasks, credentials: HTTPBasicCredentials = Depends(security)):
+    verify_password(credentials)
+    background_tasks.add_task(run_scraper)  # Run the scraper in the background
+    return {"message": "Scraper started in the background"}
+
+@app.post("/products/scrape/{product_id}")
+def scrape_product(product_id: int, background_tasks: BackgroundTasks, credentials: HTTPBasicCredentials = Depends(security)):
+    verify_password(credentials)
+    background_tasks.add_task(run_scraper, product_id)  # Run the scraper in the background for a specific product
+    return {"message": f"Scraper started in the background for product ID {product_id}"}
+
+@app.get("/test/")
+def test_endpoint():
+    return {"message": "Server is running"}
+
+@app.get("/update/database")
+def update_database():
+    init_db()
+    return JSONResponse(content={"message": "Database updated successfully!"})
+
+
+
+stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
+
+if os.environ.get("STRIPE_ENVIRONMENT") == "test":
+    stripe.api_key = os.environ.get("STRIPE_TEST_SECRET_KEY")
+    stripe_public_key = os.environ.get("STRIPE_TEST_PUBLIC_KEY")
+else:
+    stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
+    stripe_public_key = os.environ.get("STRIPE_PUBLIC_KEY")
+
+class StripeCheckoutSessionRequest(BaseModel):
+    plan: str
+
+@app.post("/create-checkout-session")
+async def create_checkout_session(request: StripeCheckoutSessionRequest, db: Session = Depends(get_db)):
+    if request.plan == "pro-lite":
+        price_id = "price_1RHh9iHB4FuKHL1pxkTQOfPd"  # Replace with your actual Pro Lite price ID
+    elif request.plan == "pro":
+        price_id = "price_1RHhARHB4FuKHL1pUiWHACvC"  # Replace with your actual Pro price ID
+    elif request.plan == "exclusive":
+        price_id = "price_1RHhARHB4FuKHL1pJLJh1N1d"  # Replace with your actual Exclusive price ID
+    else:
+        raise HTTPException(status_code=400, detail="Invalid plan")
+
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[
+                {
+                    'price': price_id,
+                    'quantity': 1,
+                },
+            ],
+            mode='subscription',
+            success_url="http://localhost:3000/user-dashboard?success=true",  # Replace with your actual success URL
+            cancel_url="http://localhost:3000/pricing?canceled=true",  # Replace with your actual cancel URL
+        )
+        return {"id": checkout_session.id}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+class CurrencyConversionResponse(BaseModel):
+    convertedPrice: float
+
+@app.get("/convert-currency/")
+async def convert_currency(amount: float, to: str):
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(f"https://api.frankfurter.app/latest?amount={amount}&from=USD&to={to}")
+            response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
+            data = response.json()
+            if data.get("rates") and data["rates"].get(to):
+                converted_price = data["rates"][to]
+                return CurrencyConversionResponse(convertedPrice=converted_price)
+            else:
+                raise HTTPException(status_code=400, detail="Currency conversion failed")
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
