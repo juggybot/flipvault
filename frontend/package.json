@@ -10,7 +10,10 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build"
+    "build": "cross-env NETLIFY_NEXT_PLUGIN_SKIP=true react-scripts build"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
   },
   "browserslist": {
     "production": [
