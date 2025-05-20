@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from backend.database import SessionLocal, init_db
 from pydantic import BaseModel
-import backend.crud, backend.models
+from backend import crud, models
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from typing import Optional
 from backend.services.scraper import run_scraper
@@ -141,17 +141,17 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 @app.post("/register")
 def register_user(user: UserCreate, db: Session = Depends(get_db)):
-    existing_user = backend.crud.get_user_by_username(db, username=user.username)
+    existing_user = crud.get_user_by_username(db, username=user.username)
     if (existing_user):
         raise HTTPException(status_code=400, detail="Username already registered")
 
     hashed_password = pwd_context.hash(user.password)
-    new_user = backend.crud.create_user(db, username=user.username, hashed_password=hashed_password)
+    new_user = crud.create_user(db, username=user.username, hashed_password=hashed_password)
     return {"message": "User registered successfully"}
 
 @app.post("/login")
 def login(login_request: LoginRequest, db: Session = Depends(get_db)):
-    user = backend.crud.get_user_by_username(db, username=login_request.username)
+    user = crud.get_user_by_username(db, username=login_request.username)
     if not user:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
@@ -163,12 +163,12 @@ def login(login_request: LoginRequest, db: Session = Depends(get_db)):
 @app.post("/products/")
 def create_product(product: ProductCreate, db: Session = Depends(get_db), credentials: HTTPBasicCredentials = Depends(security)):
     verify_password(credentials)
-    return backend.crud.create_product(db=db, name=product.name, image_url=product.image_url)
+    return crud.create_product(db=db, name=product.name, image_url=product.image_url)
 
 @app.delete("/products/{product_id}/delete")
 def delete_product(product_id: int, db: Session = Depends(get_db), credentials: HTTPBasicCredentials = Depends(security)):
     verify_password(credentials)
-    product = backend.crud.delete_product(db=db, product_id=product_id)
+    product = crud.delete_product(db=db, product_id=product_id)
     if product is None:
         raise HTTPException(status_code=404, detail="Product not found")
     return product
@@ -176,7 +176,7 @@ def delete_product(product_id: int, db: Session = Depends(get_db), credentials: 
 @app.get("/products/")
 def read_products(skip: int = 0, limit: int = 15, db: Session = Depends(get_db)):
     try:
-        return backend.crud.get_products(db, skip=skip, limit=limit)
+        return crud.get_products(db, skip=skip, limit=limit)
     except Exception as e:
         print(f"Error retrieving products: {e}")
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
@@ -184,7 +184,7 @@ def read_products(skip: int = 0, limit: int = 15, db: Session = Depends(get_db))
 @app.get("/products/{product_id}", response_model=ProductResponse)
 def read_product(product_id: int, db: Session = Depends(get_db)):
     try:
-        product = backend.crud.get_product(db, product_id=product_id)
+        product = crud.get_product(db, product_id=product_id)
         if product is None:
             raise HTTPException(status_code=404, detail="Product not found")
         
@@ -216,7 +216,7 @@ def read_product(product_id: int, db: Session = Depends(get_db)):
 @app.get("/search/")
 def search_products(query: str, db: Session = Depends(get_db)):
     try:
-        products = db.query(backend.models.Product).filter(backend.models.Product.name.ilike(f"%{query}%")).all()
+        products = db.query(models.Product).filter(models.Product.name.ilike(f"%{query}%")).all()
         return products
     except Exception as e:
         print(f"Error searching products: {e}")
