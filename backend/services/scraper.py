@@ -2,19 +2,16 @@ import random
 import requests
 from bs4 import BeautifulSoup
 from sqlalchemy.orm import Session
-from database import SessionLocal, init_db
-from crud import create_product, get_product, update_product
+from ..database import SessionLocal, init_db
+from ..crud import create_product, get_product, update_product
 from models import Product
 from urllib.parse import quote_plus
 import schedule
 import time
 import os
 from typing import Optional
-import cloudscraper
 import xml.etree.ElementTree as ET
 import json
-import fake_useragent
-import re
 
 class MarketplaceScraper:
     def __init__(self):
