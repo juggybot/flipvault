@@ -1,8 +1,7 @@
-from sqlalchemy import Column, Integer, String, Float, Text, DateTime, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
-
-Base = declarative_base()
+from backend.database import Base
+import datetime
 
 class Product(Base):
     __tablename__ = "products"
@@ -16,8 +15,8 @@ class Product(Base):
     search_volume_us = Column(String, nullable=True)
     search_volume_au = Column(String, nullable=True)
     search_volume_uk = Column(String, nullable=True)
-    popular_keywords = Column(Text, nullable=True)
-    last_updated = Column(String, nullable=True)
+    popular_keywords = Column(String, nullable=True)  # Store as JSON string
+    last_updated = Column(String, nullable=True)  # Store as ISO format date string
 
 class User(Base):
     __tablename__ = "users"
@@ -25,3 +24,4 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
     hashed_password = Column(String)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)

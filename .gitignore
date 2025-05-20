@@ -123,4 +123,5 @@ cython_debug/
 # Secret Files
 proxies.txt
 test.db
+backend/services/scraper.py
 # ...existing code...
