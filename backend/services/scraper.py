@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 from sqlalchemy.orm import Session
 from ..database import SessionLocal, init_db
 from ..crud import create_product, get_product, update_product
-from models import Product
+from ..models import Product
 from urllib.parse import quote_plus
 import schedule
 import time
