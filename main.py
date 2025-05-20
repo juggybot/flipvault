@@ -19,16 +19,24 @@ import httpx
 
 app = FastAPI()
 
+# Add your production domain to the allowed origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "https://flipvault.netlify.app"],
+    allow_origins=["http://localhost:3000", "https://flipvault.netlify.app", "https://flipvault-afea58153afb.herokuapp.com"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Initialize the database
-init_db()
+# Startup event to properly initialize the database
+@app.on_event("startup")
+async def startup_event():
+    try:
+        init_db()
+        print("Database initialized successfully")
+    except Exception as e:
+        print(f"Error initializing database: {e}")
+        # Don't raise exception here to prevent app from crashing
 
 # Dependency to get the database session
 def get_db():
@@ -41,8 +49,10 @@ def get_db():
 security = HTTPBasic()
 
 def verify_password(credentials: HTTPBasicCredentials):
-    correct_username = os.environ.get("ADMIN_USERNAME") # Use env variable
-    correct_password = os.environ.get("ADMIN_PASSWORD") # Use env variable
+    # Default values as fallback if environment variables are not set
+    correct_username = os.environ.get("ADMIN_USERNAME", "admin")
+    correct_password = os.environ.get("ADMIN_PASSWORD", "password")
+    
     if credentials.username != correct_username or credentials.password != correct_password:
         raise HTTPException(status_code=401, detail="Incorrect username or password")
 
@@ -165,53 +175,72 @@ def delete_product(product_id: int, db: Session = Depends(get_db), credentials: 
 
 @app.get("/products/")
 def read_products(skip: int = 0, limit: int = 15, db: Session = Depends(get_db)):
-    return backend.crud.get_products(db, skip=skip, limit=limit)
+    try:
+        return backend.crud.get_products(db, skip=skip, limit=limit)
+    except Exception as e:
+        print(f"Error retrieving products: {e}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.get("/products/{product_id}", response_model=ProductResponse)
 def read_product(product_id: int, db: Session = Depends(get_db)):
-    product = backend.crud.get_product(db, product_id=product_id)
-    if product is None:
-        raise HTTPException(status_code=404, detail="Product not found")
-    
     try:
-        # Check if popular_keywords is a string, and parse it
-        keywords = json.loads(product.popular_keywords) if isinstance(product.popular_keywords, str) else product.popular_keywords
-    except json.JSONDecodeError:
-        # In case of a decoding error, assign an empty list
-        keywords = []
+        product = backend.crud.get_product(db, product_id=product_id)
+        if product is None:
+            raise HTTPException(status_code=404, detail="Product not found")
+        
+        # Handle popular_keywords safely
+        try:
+            keywords = json.loads(product.popular_keywords) if isinstance(product.popular_keywords, str) else product.popular_keywords or []
+        except (json.JSONDecodeError, TypeError):
+            keywords = []
 
-    # Convert SQLAlchemy object to dictionary
-    product_dict = {
-        "id": product.id,
-        "name": product.name,
-        "image_url": product.image_url,
-        "average_ebay_price": product.average_ebay_price or 0.0,
-        "ebay_listings": product.ebay_listings or 0,
-        "ebay_sale_amount": product.ebay_sale_amount or 0.0,
-        "search_volume_us": product.search_volume_us or 0,
-        "search_volume_au": product.search_volume_au or 0,
-        "search_volume_uk": product.search_volume_uk or 0,
-        "popular_keywords": keywords,
-        "last_updated": product.last_updated or None,
-    }
-    return product_dict
+        # Convert SQLAlchemy object to dictionary with safe defaults
+        product_dict = {
+            "id": product.id,
+            "name": product.name,
+            "image_url": product.image_url,
+            "average_ebay_price": product.average_ebay_price or 0.0,
+            "ebay_listings": product.ebay_listings or 0,
+            "ebay_sale_amount": product.ebay_sale_amount or 0.0,
+            "search_volume_us": product.search_volume_us or "0",
+            "search_volume_au": product.search_volume_au or "0",
+            "search_volume_uk": product.search_volume_uk or "0",
+            "popular_keywords": keywords,
+            "last_updated": product.last_updated or None,
+        }
+        return product_dict
+    except Exception as e:
+        print(f"Error retrieving product {product_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.get("/search/")
 def search_products(query: str, db: Session = Depends(get_db)):
-    products = db.query(backend.models.Product).filter(backend.models.Product.name.ilike(f"%{query}%")).all()
-    return products
+    try:
+        products = db.query(backend.models.Product).filter(backend.models.Product.name.ilike(f"%{query}%")).all()
+        return products
+    except Exception as e:
+        print(f"Error searching products: {e}")
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.post("/products/scrape")
 def scrape_products(background_tasks: BackgroundTasks, credentials: HTTPBasicCredentials = Depends(security)):
     verify_password(credentials)
-    background_tasks.add_task(run_scraper)  # Run the scraper in the background
-    return {"message": "Scraper started in the background"}
+    try:
+        background_tasks.add_task(run_scraper)  # Run the scraper in the background
+        return {"message": "Scraper started in the background"}
+    except Exception as e:
+        print(f"Error starting scraper: {e}")
+        return {"message": f"Error starting scraper: {str(e)}"}
 
 @app.post("/products/scrape/{product_id}")
 def scrape_product(product_id: int, background_tasks: BackgroundTasks, credentials: HTTPBasicCredentials = Depends(security)):
     verify_password(credentials)
-    background_tasks.add_task(run_scraper, product_id)  # Run the scraper in the background for a specific product
-    return {"message": f"Scraper started in the background for product ID {product_id}"}
+    try:
+        background_tasks.add_task(run_scraper, product_id)  # Run the scraper in the background for a specific product
+        return {"message": f"Scraper started in the background for product ID {product_id}"}
+    except Exception as e:
+        print(f"Error starting scraper for product {product_id}: {e}")
+        return {"message": f"Error starting scraper: {str(e)}"}
 
 @app.get("/test/")
 def test_endpoint():
@@ -219,49 +248,68 @@ def test_endpoint():
 
 @app.get("/update/database")
 def update_database():
-    init_db()
-    return JSONResponse(content={"message": "Database updated successfully!"})
+    try:
+        init_db()
+        return JSONResponse(content={"message": "Database updated successfully!"})
+    except Exception as e:
+        print(f"Error updating database: {e}")
+        return JSONResponse(content={"message": f"Database update failed: {str(e)}"}, status_code=500)
 
-
-
-stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
-
-if os.environ.get("STRIPE_ENVIRONMENT") == "test":
-    stripe.api_key = os.environ.get("STRIPE_TEST_SECRET_KEY")
-    stripe_public_key = os.environ.get("REACT_APP_STRIPE_TEST_PUBLIC_KEY")
-else:
-    stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
-    stripe_public_key = os.environ.get("REACT_APP_STRIPE_PUBLIC_KEY")
+# Initialize Stripe with appropriate error handling
+try:
+    stripe_env = os.environ.get("STRIPE_ENVIRONMENT", "production")
+    if stripe_env == "test":
+        stripe.api_key = os.environ.get("STRIPE_TEST_SECRET_KEY", "")
+        stripe_public_key = os.environ.get("REACT_APP_STRIPE_TEST_PUBLIC_KEY", "")
+    else:
+        stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "")
+        stripe_public_key = os.environ.get("REACT_APP_STRIPE_PUBLIC_KEY", "")
+    
+    if not stripe.api_key:
+        print("WARNING: Stripe API key not set. Stripe functionality will be limited.")
+except Exception as e:
+    print(f"Error initializing Stripe: {e}")
 
 class StripeCheckoutSessionRequest(BaseModel):
     plan: str
 
 @app.post("/create-checkout-session")
 async def create_checkout_session(request: StripeCheckoutSessionRequest, db: Session = Depends(get_db)):
-    if request.plan == "pro-lite":
-        price_id = "price_1RHh9iHB4FuKHL1pxkTQOfPd"  # Replace with your actual Pro Lite price ID
-    elif request.plan == "pro":
-        price_id = "price_1RHhARHB4FuKHL1pUiWHACvC"  # Replace with your actual Pro price ID
-    elif request.plan == "exclusive":
-        price_id = "price_1RHhARHB4FuKHL1pJLJh1N1d"  # Replace with your actual Exclusive price ID
-    else:
+    if not stripe.api_key:
+        raise HTTPException(status_code=500, detail="Stripe API key not configured")
+    
+    # Use environment variables for price IDs
+    price_ids = {
+        "pro-lite": os.environ.get("STRIPE_PRICE_PRO_LITE", "price_1RHh9iHB4FuKHL1pxkTQOfPd"),
+        "pro": os.environ.get("STRIPE_PRICE_PRO", "price_1RHhARHB4FuKHL1pUiWHACvC"),
+        "exclusive": os.environ.get("STRIPE_PRICE_EXCLUSIVE", "price_1RHhARHB4FuKHL1pJLJh1N1d"),
+    }
+    
+    if request.plan not in price_ids:
         raise HTTPException(status_code=400, detail="Invalid plan")
 
+    # Determine proper success and cancel URLs based on environment
+    base_url = os.environ.get("APP_BASE_URL", "https://flipvault.netlify.app")
+    
     try:
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
             line_items=[
                 {
-                    'price': price_id,
+                    'price': price_ids[request.plan],
                     'quantity': 1,
                 },
             ],
             mode='subscription',
-            success_url="http://localhost:3000/user-dashboard?success=true",  # Replace with your actual success URL
-            cancel_url="http://localhost:3000/pricing?canceled=true",  # Replace with your actual cancel URL
+            success_url=f"{base_url}/user-dashboard?success=true",
+            cancel_url=f"{base_url}/pricing?canceled=true",
         )
         return {"id": checkout_session.id}
+    except stripe.error.StripeError as e:
+        print(f"Stripe error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
+        print(f"Error creating checkout session: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 class CurrencyConversionResponse(BaseModel):
@@ -272,7 +320,7 @@ async def convert_currency(amount: float, to: str):
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(f"https://api.frankfurter.app/latest?amount={amount}&from=USD&to={to}")
-            response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
+            response.raise_for_status()
             data = response.json()
             if data.get("rates") and data["rates"].get(to):
                 converted_price = data["rates"][to]
@@ -280,6 +328,13 @@ async def convert_currency(amount: float, to: str):
             else:
                 raise HTTPException(status_code=400, detail="Currency conversion failed")
     except httpx.HTTPStatusError as e:
+        print(f"HTTP error in currency conversion: {e}")
         raise HTTPException(status_code=e.response.status_code, detail=str(e))
     except Exception as e:
+        print(f"Error in currency conversion: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+# Health check endpoint
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
