@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from . import models
 import json  # Import JSON for serialization
-from models import Product
+from .models import Product
 
 def create_product(db: Session, name: str, image_url: str):
     db_product = Product(name=name, image_url=image_url)
