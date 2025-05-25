@@ -50,9 +50,8 @@ def get_db():
 security = HTTPBasic()
 
 def verify_password(credentials: HTTPBasicCredentials):
-    # Default values as fallback if environment variables are not set
-    correct_username = os.environ.get("ADMIN_USERNAME", "admin")
-    correct_password = os.environ.get("ADMIN_PASSWORD", "password")
+    correct_username = "juggy"  # Hardcode for now, move to env vars later
+    correct_password = "Idus1234@@"  # Hardcode for now, move to env vars later
     
     if credentials.username != correct_username or credentials.password != correct_password:
         raise HTTPException(status_code=401, detail="Incorrect username or password")
@@ -162,14 +161,9 @@ def login(login_request: LoginRequest, db: Session = Depends(get_db)):
     return {"success": True, "message": "Login successful"}
 
 @app.post("/admin-login")
-def admin_login(login_request: LoginRequest, db: Session = Depends(get_db)):
-    # Verify against environment variables or secure storage
-    admin_username = os.environ.get("ADMIN_USERNAME", "admin")
-    admin_password = os.environ.get("ADMIN_PASSWORD", "password") 
-    
-    if login_request.username != admin_username or not pwd_context.verify(login_request.password, pwd_context.hash(admin_password)):
+def admin_login(login_request: LoginRequest):
+    if login_request.username != "juggy" or login_request.password != "Idus1234@@":
         raise HTTPException(status_code=401, detail="Invalid admin credentials")
-
     return {"success": True, "message": "Admin login successful"}
 
 @app.post("/products/")

@@ -35,6 +35,7 @@ export const adminLogin = async (username, password) => {
     });
     if (response.data.success) {
       localStorage.setItem('isAdmin', 'true');
+      localStorage.setItem('adminAuth', btoa(`${username}:${password}`));
     }
     return response.data;
   } catch (error) {
@@ -56,10 +57,18 @@ export const getProducts = async () => {
 // Create a new product
 export const createProduct = async (product) => {
   try {
+    const authHeader = localStorage.getItem('adminAuth');
+    const config = {
+      headers: { 
+        'Authorization': `Basic ${authHeader}`,
+        'Content-Type': 'application/json'
+      }
+    };
+    
     const response = await axiosInstance.post('/products/', {
       name: product.name,
       image_url: product.image_url
-    });
+    }, config);
     
     if (response.data) {
       console.log('Product created:', response.data);
