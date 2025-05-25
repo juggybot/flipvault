@@ -15,17 +15,15 @@ const AdminDashboard = () => {
 
     const fetchProducts = async () => {
         try {
-            const response = await fetch('https://flipvault-afea58153afb.herokuapp.com/products?skip=0&limit=15', {
-                credentials: 'include',
+            const response = await fetch('https://flipvault-afea58153afb.herokuapp.com/products', {
+                method: 'GET',
                 headers: {
-                    'Authorization': 'Basic ' + btoa('juggy:Idus1234@@'),
                     'Content-Type': 'application/json',
                 },
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(`Error: ${response.status} - ${errorData.detail}`);
+                throw new Error(`Error: ${response.status}`);
             }
 
             const data = await response.json();
@@ -36,10 +34,27 @@ const AdminDashboard = () => {
     };
 
     const handleCreateProduct = async (product) => {
-        const newProduct = await createProduct({ name: product.name, image_url: product.imageUrl });
-        if (newProduct) {
+        try {
+            const response = await fetch('https://flipvault-afea58153afb.herokuapp.com/products/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: product.name,
+                    image_url: product.imageUrl
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to create product');
+            }
+
+            const newProduct = await response.json();
             setProducts([...products, newProduct]);
-        } else {
+            alert('Product created successfully');
+        } catch (error) {
+            console.error('Error creating product:', error);
             alert('Error creating product');
         }
     };

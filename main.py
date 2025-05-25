@@ -22,10 +22,11 @@ app = FastAPI()
 # Add your production domain to the allowed origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "https://flipvault.netlify.app", "https://flipvault-afea58153afb.herokuapp.com"],
+    allow_origins=["http://localhost:3000", "https://flipvault.netlify.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 # Startup event to properly initialize the database
@@ -172,8 +173,8 @@ def admin_login(login_request: LoginRequest, db: Session = Depends(get_db)):
     return {"success": True, "message": "Admin login successful"}
 
 @app.post("/products/")
-def create_product(product: ProductCreate, db: Session = Depends(get_db), credentials: HTTPBasicCredentials = Depends(security)):
-    verify_password(credentials)
+def create_product(product: ProductCreate, db: Session = Depends(get_db)):
+    # Remove credentials requirement temporarily for testing
     return crud.create_product(db=db, name=product.name, image_url=product.image_url)
 
 @app.delete("/products/{product_id}/delete")

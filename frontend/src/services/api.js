@@ -54,10 +54,23 @@ export const getProducts = async () => {
 // Create a new product
 export const createProduct = async (product) => {
   try {
-    const response = await axiosInstance.post('/products/', product);
-    return { success: true, data: response.data };
+    const response = await axiosInstance.post('/products/', {
+      name: product.name,
+      image_url: product.image_url
+    });
+    
+    if (response.data) {
+      console.log('Product created:', response.data);
+      return { success: true, data: response.data };
+    } else {
+      throw new Error('No data received from server');
+    }
   } catch (error) {
-    return handleError(error, 'Error creating product');
+    console.error('Error creating product:', error);
+    return { 
+      success: false, 
+      error: error.response?.data?.detail || 'Error creating product'
+    };
   }
 };
 
