@@ -173,9 +173,15 @@ def admin_login(login_request: LoginRequest, db: Session = Depends(get_db)):
     return {"success": True, "message": "Admin login successful"}
 
 @app.post("/products/")
-def create_product(product: ProductCreate, db: Session = Depends(get_db)):
-    # Remove credentials requirement temporarily for testing
-    return crud.create_product(db=db, name=product.name, image_url=product.image_url)
+def create_product(product: ProductCreate, db: Session = Depends(get_db), credentials: HTTPBasicCredentials = Depends(security)):
+    try:
+        verify_password(credentials)
+        return crud.create_product(db=db, name=product.name, image_url=product.image_url)
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        print(f"Error creating product: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.delete("/products/{product_id}/delete")
 def delete_product(product_id: int, db: Session = Depends(get_db), credentials: HTTPBasicCredentials = Depends(security)):

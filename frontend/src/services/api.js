@@ -6,7 +6,9 @@ const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
+    'Authorization': 'Basic ' + btoa('juggy:Idus1234@@')
   },
+  withCredentials: true
 });
 
 // Function for handling errors

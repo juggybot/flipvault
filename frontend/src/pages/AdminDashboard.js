@@ -37,8 +37,10 @@ const AdminDashboard = () => {
         try {
             const response = await fetch('https://flipvault-afea58153afb.herokuapp.com/products/', {
                 method: 'POST',
+                credentials: 'include',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': 'Basic ' + btoa('juggy:Idus1234@@')
                 },
                 body: JSON.stringify({
                     name: product.name,
