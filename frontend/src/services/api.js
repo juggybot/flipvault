@@ -25,6 +25,15 @@ export const login = async (username, password) => {
   }
 };
 
+export const adminLogin = async (username, password) => {
+  try {
+    const response = await axiosInstance.post('/admin-login', { username, password });
+    return { success: response.data.success };
+  } catch (error) {
+    return handleError(error, 'Admin login error');
+  }
+};
+
 // Fetch all products
 export const getProducts = async () => {
   try {
