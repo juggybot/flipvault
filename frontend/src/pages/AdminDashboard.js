@@ -15,7 +15,7 @@ const AdminDashboard = () => {
 
     const fetchProducts = async () => {
         try {
-            const response = await fetch('http://localhost:8000/products?skip=0&limit=15', {
+            const response = await fetch('https://flipvault-afea58153afb.herokuapp.com/products?skip=0&limit=15', {
                 credentials: 'include',
                 headers: {
                     'Authorization': 'Basic ' + btoa('juggy:Idus1234@@'),

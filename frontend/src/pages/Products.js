@@ -67,7 +67,7 @@ function Products() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('http://localhost:8000/products?skip=0&limit=10', {
+      const response = await fetch('https://flipvault-afea58153afb.herokuapp.com/products?skip=0&limit=10', {
         credentials: 'include',
         headers: {
           'Authorization': 'Basic ' + btoa('juggy:Idus1234@@'),
@@ -95,7 +95,7 @@ function Products() {
       return;
     }
     try {
-      const response = await fetch(`http://localhost:8000/search/?query=${query}`);
+      const response = await fetch(`https://flipvault-afea58153afb.herokuapp.com/search/?query=${query}`);
       const data = await response.json();
       setProducts(data);
     } catch (error) {

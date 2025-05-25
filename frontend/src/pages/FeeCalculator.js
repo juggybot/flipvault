@@ -60,7 +60,7 @@ function FeeCalculatorPage() {
 
   const handleCalculateFee = async () => {
     try {
-      const response = await axios.post('http://localhost:8000/api/calculate_fee', {
+      const response = await axios.post('https://flipvault-afea58153afb.herokuapp.com/api/calculate_fee', {
         sale_price: parseFloat(salePrice),
         marketplace: marketplace,
       });

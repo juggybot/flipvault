@@ -64,7 +64,7 @@ function ProductCard() {
             return;  // Stop execution if ID is invalid
         }
 
-        fetch(`http://localhost:8000/products/${parsedProductId}`, {
+        fetch(`https://flipvault-afea58153afb.herokuapp.com/products/${parsedProductId}`, {
             method: 'GET',
             credentials: 'include',
             headers: {
