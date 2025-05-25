@@ -27,10 +27,17 @@ export const login = async (username, password) => {
 
 export const adminLogin = async (username, password) => {
   try {
-    const response = await axiosInstance.post('/admin-login', { username, password });
-    return { success: response.data.success };
+    const response = await axiosInstance.post('/admin-login', { 
+      username, 
+      password 
+    });
+    if (response.data.success) {
+      localStorage.setItem('isAdmin', 'true');
+    }
+    return response.data;
   } catch (error) {
-    return handleError(error, 'Admin login error');
+    console.error('Admin login error:', error);
+    return { success: false, error: error.response?.data?.detail || 'Login failed' };
   }
 };
 

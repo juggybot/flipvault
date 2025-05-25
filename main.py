@@ -160,6 +160,17 @@ def login(login_request: LoginRequest, db: Session = Depends(get_db)):
 
     return {"success": True, "message": "Login successful"}
 
+@app.post("/admin-login")
+def admin_login(login_request: LoginRequest, db: Session = Depends(get_db)):
+    # Verify against environment variables or secure storage
+    admin_username = os.environ.get("ADMIN_USERNAME", "admin")
+    admin_password = os.environ.get("ADMIN_PASSWORD", "password") 
+    
+    if login_request.username != admin_username or not pwd_context.verify(login_request.password, pwd_context.hash(admin_password)):
+        raise HTTPException(status_code=401, detail="Invalid admin credentials")
+
+    return {"success": True, "message": "Admin login successful"}
+
 @app.post("/products/")
 def create_product(product: ProductCreate, db: Session = Depends(get_db), credentials: HTTPBasicCredentials = Depends(security)):
     verify_password(credentials)

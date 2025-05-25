@@ -9,22 +9,23 @@ const AdminLogin = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    console.log('AdminLogin: Attempting login with', { username, password }); // Log credentials
+    console.log('AdminLogin: Attempting login with', { username }); // Log credentials
 
     try {
       const result = await adminLogin(username, password); // Changed to adminLogin
       console.log('AdminLogin: Login result:', result); // Log the result
 
-      if (result && result.success) {
-        console.log('AdminLogin: Login successful, navigating to /admin-dashboard');
+      if (result.success) {
+        localStorage.setItem('adminToken', 'true'); // Add admin token
+        console.log('AdminLogin: Login successful');
         navigate('/admin-dashboard');
       } else {
         console.log('AdminLogin: Login failed');
-        alert('Login failed');
+        alert(result.error || 'Login failed');
       }
     } catch (error) {
       console.error('AdminLogin: Error during login:', error); // Log any errors
-      alert('Login failed');
+      alert('Login failed. Please try again.');
     }
   };
 
