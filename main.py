@@ -238,11 +238,15 @@ def search_products(query: str, db: Session = Depends(get_db)):
 def scrape_products(background_tasks: BackgroundTasks, credentials: HTTPBasicCredentials = Depends(security)):
     verify_password(credentials)
     try:
-        background_tasks.add_task(run_scraper)  # Run the scraper in the background
+        # Add better error handling for scraper
+        background_tasks.add_task(run_scraper)
         return {"message": "Scraper started in the background"}
+    except ValueError as ve:
+        print(f"Proxy error: {str(ve)}")
+        raise HTTPException(status_code=500, detail="Scraper configuration error: Check proxy settings")
     except Exception as e:
         print(f"Error starting scraper: {e}")
-        return {"message": f"Error starting scraper: {str(e)}"}
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/products/scrape/{product_id}")
 def scrape_product(product_id: int, background_tasks: BackgroundTasks, credentials: HTTPBasicCredentials = Depends(security)):

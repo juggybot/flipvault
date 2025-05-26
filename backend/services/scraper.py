@@ -12,22 +12,33 @@ import os
 from typing import Optional
 import xml.etree.ElementTree as ET
 import json
+from dotenv import load_dotenv
 
 class MarketplaceScraper:
     def __init__(self):
+        load_dotenv()  # Load environment variables
         self.proxies = self.load_proxies()
 
     def load_proxies(self):
-        file_path = os.path.join(os.path.dirname(__file__), 'proxies.txt')
         try:
-            with open(file_path, 'r') as f:
-                proxies = [line.strip() for line in f if line.strip()]
-            if not proxies:
-                print(f"No proxies found in file: {file_path}")
-            return proxies
-        except FileNotFoundError:
-            print(f"Proxy file not found at: {file_path}")
-            return []
+            # Get proxy credentials from environment variables
+            username = os.getenv('PROXY_USERNAME')
+            password = os.getenv('PROXY_PASSWORD')
+            proxy_ip = os.getenv('PROXY_IP')
+            proxy_port = os.getenv('PROXY_PORT')
+            if not all([username, password, proxy_ip, proxy_port]):
+                raise EnvironmentError("One or more proxy environment variables are missing.")
+
+            # Create proxy string
+            proxy = f"{username}:{password}:{proxy_ip}:{proxy_port}"
+            print(f"Using proxy configuration (username:***:ip:port): {username}:***:{proxy_ip}:{proxy_port}")
+            
+            return [proxy]  # Return as list for compatibility with existing code
+            
+        except Exception as e:
+            print(f"Error loading proxy configuration: {e}")
+            # Return default proxy as fallback
+            return ["default_username:default_password:default_ip:default_port"]
 
     def generate_url(self, keywords):
         encoded_keywords = quote_plus(keywords)
