@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 
 class MarketplaceScraper:
     def __init__(self):
-        load_dotenv()  # Load environment variables
+        load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))  # Load environment variables from .env in current directory
         self.proxies = self.load_proxies()
 
     def load_proxies(self):
