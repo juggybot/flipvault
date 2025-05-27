@@ -70,6 +70,25 @@ function Settings() {
       "https://discord.com/api/oauth2/authorize?client_id=1332596449145393162&redirect_uri=test.com&response_type=code&scope=identify";
   };
 
+  const handleCancelSubscription = async () => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/cancel-subscription`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      if (response.ok) {
+        alert('Subscription cancelled successfully');
+      } else {
+        throw new Error('Failed to cancel subscription');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Failed to cancel subscription');
+    }
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -204,10 +223,18 @@ function Settings() {
                 Subscription
               </Typography>
               <Box mt={1} sx={{ display: 'flex', gap: 2 }}>
-                <ModernButton variant="contained" color="secondary">
+                <ModernButton 
+                  variant="contained" 
+                  color="secondary" 
+                  onClick={handleCancelSubscription}
+                >
                   Cancel Subscription
                 </ModernButton>
-                <ModernButton variant="contained" color="primary">
+                <ModernButton 
+                  variant="contained" 
+                  color="primary" 
+                  onClick={() => window.location.href = '/pricing'}
+                >
                   Upgrade Subscription
                 </ModernButton>
               </Box>

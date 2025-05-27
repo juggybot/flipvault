@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Container, Typography, Grid, Paper, Button, Box, AppBar, Toolbar, IconButton, Menu, MenuItem, CssBaseline } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Menu as MenuIcon } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { styled } from '@mui/system';
+import { loadStripe } from '@stripe/stripe-js';
 
 const theme = createTheme({
   palette: {
@@ -50,6 +51,8 @@ const ModernButton = styled(Button)({
 
 function Pricing() {
   const [anchorEl, setAnchorEl] = React.useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -78,40 +81,47 @@ function Pricing() {
   }, []);
 
   const handleCheckout = async (plan) => {
-    // Initialize Stripe with your public key
-    const stripePublicKey = process.env.REACT_APP_STRIPE_ENVIRONMENT === 'test'
-      ? process.env.REACT_APP_STRIPE_TEST_PUBLIC_KEY
-      : 'pk_test_51Ne35tHB4FuKHL1p15L1LqAnf1v6Et7i3ppuPb1E1mnfGWEirsi5sHuapeqrFztV7B5THeFyxtduHOmCRYoFvyHd00spIOY1Oq';
-    const stripe = window.Stripe(stripePublicKey);
-
-    // Map your plans to their respective Stripe Price IDs
-    const priceIds = {
-      'pro-lite': 'price_1RHhUgHB4FuKHL1ppYIJhs8A', // Replace with your actual Price ID for Pro Lite
-      'pro': 'price_1RHhUrHB4FuKHL1pbnAkQAsi',      // Replace with your actual Price ID for Pro
-      'exclusive': 'price_1RHhV2HB4FuKHL1pOJXZ4dj7'   // Replace with your actual Price ID for Exclusive
-    };
-
-    if (!priceIds[plan]) {
-      console.error('Invalid plan selected');
-      return;
-    }
+    setLoading(true);
+    setError(null);
 
     try {
-      // Redirect to Stripe Checkout
-      const { error } = await stripe.redirectToCheckout({
-        lineItems: [{ price: priceIds[plan], quantity: 1 }],
-        mode: 'subscription',
-        successUrl: window.location.origin + '/success',
-        cancelUrl: window.location.origin + '/cancel',
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/create-checkout-session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ plan })
       });
-      if (error) {
-        console.error('Stripe checkout error:', error.message);
-      }
+
+      const session = await response.json();
+
+      const stripe = await loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
+      const { error } = await stripe.redirectToCheckout({
+        sessionId: session.id
+      });
+
+      if (error) throw error;
     } catch (err) {
+      setError('Payment initialization failed. Please try again.');
       console.error('Checkout error:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
+  // Update button rendering:
+  const PricingButton = ({ plan }) => (
+    <ModernButton
+      variant="contained"
+      color="primary"
+      onClick={() => handleCheckout(plan)}
+      disabled={loading}
+    >
+      {loading ? 'Processing...' : 'BUY NOW'}
+    </ModernButton>
+  );
+
+  // Add error display
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -176,13 +186,7 @@ function Pricing() {
                 <li>Free vendors with every product check</li>
                 <li>3 Discord product alerts a week</li>
               </Box>
-              <ModernButton
-                variant="contained"
-                color="primary"
-                onClick={() => handleCheckout('pro-lite')}
-              >
-                BUY NOW
-              </ModernButton>
+              <PricingButton plan="pro-lite" />
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
@@ -208,13 +212,7 @@ function Pricing() {
                 <li>Free vendors with every product</li>
                 <li>10 Discord alerts weekly</li>
               </Box>
-              <ModernButton
-                variant="contained"
-                color="primary"
-                onClick={() => handleCheckout('pro')}
-              >
-                BUY NOW
-              </ModernButton>
+              <PricingButton plan="pro" />
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
@@ -240,16 +238,15 @@ function Pricing() {
                 <li>Free vendors with every product</li>
                 <li>Unlimited Discord alerts</li>
               </Box>
-              <ModernButton
-                variant="contained"
-                color="primary"
-                onClick={() => handleCheckout('exclusive')}
-              >
-                BUY NOW
-              </ModernButton>
+              <PricingButton plan="exclusive" />
             </Paper>
           </Grid>
         </Grid>
+        {error && (
+          <Typography color="error" sx={{ mt: 2 }}>
+            {error}
+          </Typography>
+        )}
       </Container>
     </ThemeProvider>
   );
