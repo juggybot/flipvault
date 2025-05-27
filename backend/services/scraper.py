@@ -16,7 +16,9 @@ from dotenv import load_dotenv
 
 class MarketplaceScraper:
     def __init__(self):
-        load_dotenv(os.path.join(os.path.dirname(__file__), '.env'))  # Load environment variables from .env in current directory
+        # Get the backend directory path (one level up from services)
+        backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        load_dotenv(os.path.join(backend_dir, '.env'))  # Load environment variables from .env in backend directory
         self.proxies = self.load_proxies()
 
     def load_proxies(self):
