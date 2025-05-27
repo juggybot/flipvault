@@ -16,9 +16,14 @@ from dotenv import load_dotenv
 
 class MarketplaceScraper:
     def __init__(self):
-        # Get the backend directory path (one level up from services)
-        backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        load_dotenv(os.path.join(backend_dir, '.env'))  # Load environment variables from .env in backend directory
+        # Load service-specific .env first
+        service_dir = os.path.dirname(os.path.abspath(__file__))
+        load_dotenv(os.path.join(service_dir, '.env'))
+        
+        # Load backend .env second (allows overrides)
+        backend_dir = os.path.dirname(service_dir)
+        load_dotenv(os.path.join(backend_dir, '.env'))
+        
         self.proxies = self.load_proxies()
 
     def load_proxies(self):
@@ -40,7 +45,7 @@ class MarketplaceScraper:
         except Exception as e:
             print(f"Error loading proxy configuration: {e}")
             # Return default proxy as fallback
-            return ["default_username:default_password:default_ip:default_port"]
+            return ["TY6BXIYYULM8:HEJ1QI8Q1DJR_country-UnitedStates:proxy.aceproxy.net:31112"]
 
     def generate_url(self, keywords):
         encoded_keywords = quote_plus(keywords)
@@ -108,15 +113,8 @@ class MarketplaceScraper:
         url = f'https://api.searchvolume.com/search_volume?country={country_code}&keywords={keywords}'
 
         for attempt in range(retries):
-            proxy = random.choice(self.proxies)
-            username, password, ip, port = proxy.split(':')
-            formatted_proxies = {
-                "http": f"http://{username}:{password}@{ip}:{port}/",
-                "https": f"http://{username}:{password}@{ip}:{port}/"
-            }
-
             try:
-                response = requests.get(url, proxies=formatted_proxies, timeout=10)
+                response = requests.get(url, timeout=10)
                 response.raise_for_status()
                 data = response.json()
                 if data:
