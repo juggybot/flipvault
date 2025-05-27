@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Container, Typography, Grid, Paper, Button, Box, AppBar, Toolbar, IconButton, Menu, MenuItem, CssBaseline } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Menu as MenuIcon } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { styled } from '@mui/system';
+import { loadStripe } from '@stripe/stripe-js';
 
 const theme = createTheme({
   palette: {
@@ -86,9 +87,9 @@ function Pricing() {
 
     // Map your plans to their respective Stripe Price IDs
     const priceIds = {
-      'pro-lite': 'price_1RHhUgHB4FuKHL1ppYIJhs8A', // Replace with your actual Price ID for Pro Lite
-      'pro': 'price_1RHhUrHB4FuKHL1pbnAkQAsi',      // Replace with your actual Price ID for Pro
-      'exclusive': 'price_1RHhV2HB4FuKHL1pOJXZ4dj7'   // Replace with your actual Price ID for Exclusive
+      'pro-lite': 'price_1RHhUgHB4FuKHL1ppYIJhs8A',
+      'pro': 'price_1RHhUrHB4FuKHL1pbnAkQAsi',
+      'exclusive': 'price_1RHhV2HB4FuKHL1pOJXZ4dj7'
     };
 
     if (!priceIds[plan]) {
@@ -97,12 +98,11 @@ function Pricing() {
     }
 
     try {
-      // Redirect to Stripe Checkout
       const { error } = await stripe.redirectToCheckout({
         lineItems: [{ price: priceIds[plan], quantity: 1 }],
         mode: 'subscription',
-        successUrl: window.location.origin + '/success',
-        cancelUrl: window.location.origin + '/cancel',
+        successUrl: window.location.origin + '/',
+        cancelUrl: window.location.origin + '/',
       });
       if (error) {
         console.error('Stripe checkout error:', error.message);
@@ -112,6 +112,18 @@ function Pricing() {
     }
   };
 
+  // Update button rendering:
+  const PricingButton = ({ plan }) => (
+    <ModernButton
+      variant="contained"
+      color="primary"
+      onClick={() => handleCheckout(plan)}
+    >
+      BUY NOW
+    </ModernButton>
+  );
+
+  // Add error display
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -176,13 +188,7 @@ function Pricing() {
                 <li>Free vendors with every product check</li>
                 <li>3 Discord product alerts a week</li>
               </Box>
-              <ModernButton
-                variant="contained"
-                color="primary"
-                onClick={() => handleCheckout('pro-lite')}
-              >
-                BUY NOW
-              </ModernButton>
+              <PricingButton plan="pro-lite" />
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
@@ -208,13 +214,7 @@ function Pricing() {
                 <li>Free vendors with every product</li>
                 <li>10 Discord alerts weekly</li>
               </Box>
-              <ModernButton
-                variant="contained"
-                color="primary"
-                onClick={() => handleCheckout('pro')}
-              >
-                BUY NOW
-              </ModernButton>
+              <PricingButton plan="pro" />
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
@@ -240,13 +240,7 @@ function Pricing() {
                 <li>Free vendors with every product</li>
                 <li>Unlimited Discord alerts</li>
               </Box>
-              <ModernButton
-                variant="contained"
-                color="primary"
-                onClick={() => handleCheckout('exclusive')}
-              >
-                BUY NOW
-              </ModernButton>
+              <PricingButton plan="exclusive" />
             </Paper>
           </Grid>
         </Grid>
