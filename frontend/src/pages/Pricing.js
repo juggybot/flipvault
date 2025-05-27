@@ -51,6 +51,8 @@ const ModernButton = styled(Button)({
 
 function Pricing() {
   const [anchorEl, setAnchorEl] = React.useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -79,6 +81,7 @@ function Pricing() {
   }, []);
 
   const handleCheckout = async (plan) => {
+<<<<<<< HEAD
     // Initialize Stripe with your public key
     const stripePublicKey = process.env.REACT_APP_STRIPE_ENVIRONMENT === 'test'
       ? process.env.REACT_APP_STRIPE_TEST_PUBLIC_KEY
@@ -103,12 +106,33 @@ function Pricing() {
         mode: 'subscription',
         successUrl: window.location.origin + '/',
         cancelUrl: window.location.origin + '/',
+=======
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/create-checkout-session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ plan })
+>>>>>>> 0c95d5468176c8e443f571d7768ea7cad7d1a300
       });
-      if (error) {
-        console.error('Stripe checkout error:', error.message);
-      }
+
+      const session = await response.json();
+
+      const stripe = await loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
+      const { error } = await stripe.redirectToCheckout({
+        sessionId: session.id
+      });
+
+      if (error) throw error;
     } catch (err) {
+      setError('Payment initialization failed. Please try again.');
       console.error('Checkout error:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -118,8 +142,14 @@ function Pricing() {
       variant="contained"
       color="primary"
       onClick={() => handleCheckout(plan)}
+<<<<<<< HEAD
     >
       BUY NOW
+=======
+      disabled={loading}
+    >
+      {loading ? 'Processing...' : 'BUY NOW'}
+>>>>>>> 0c95d5468176c8e443f571d7768ea7cad7d1a300
     </ModernButton>
   );
 
@@ -244,6 +274,11 @@ function Pricing() {
             </Paper>
           </Grid>
         </Grid>
+        {error && (
+          <Typography color="error" sx={{ mt: 2 }}>
+            {error}
+          </Typography>
+        )}
       </Container>
     </ThemeProvider>
   );

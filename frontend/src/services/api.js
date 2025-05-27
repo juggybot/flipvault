@@ -115,3 +115,34 @@ export const scrapeProduct = async (productId) => {
   }
 };
 
+// Add token refresh interceptor
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      try {
+        const refreshResult = await axiosInstance.post('/refresh-token');
+        if (refreshResult.data?.token) {
+          localStorage.setItem('token', refreshResult.data.token);
+          error.config.headers['Authorization'] = `Bearer ${refreshResult.data.token}`;
+          return axiosInstance(error.config);
+        }
+      } catch (refreshError) {
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+// Add subscription verification to API calls
+export const verifySubscription = async () => {
+  try {
+    const response = await axiosInstance.get('/verify-subscription');
+    return response.data.isActive;
+  } catch (error) {
+    return handleError(error, 'Subscription verification failed');
+  }
+};
+
