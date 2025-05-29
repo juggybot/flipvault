@@ -4,7 +4,6 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Menu as MenuIcon } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { styled } from '@mui/system';
-import { loadStripe } from '@stripe/stripe-js';
 
 const theme = createTheme({
   palette: {
