@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Typography, Grid, Paper, Button, Box, AppBar, Toolbar, IconButton, Menu, MenuItem, CssBaseline } from '@mui/material';
+import { Container, Typography, Grid, Paper, Button, Box, AppBar, Toolbar, IconButton, Menu, MenuItem, CssBaseline, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Menu as MenuIcon } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
@@ -81,7 +81,6 @@ function Pricing() {
   }, []);
 
   const handleCheckout = async (plan) => {
-<<<<<<< HEAD
     // Initialize Stripe with your public key
     const stripePublicKey = process.env.REACT_APP_STRIPE_ENVIRONMENT === 'test'
       ? process.env.REACT_APP_STRIPE_TEST_PUBLIC_KEY
@@ -101,33 +100,14 @@ function Pricing() {
     }
 
     try {
-      const { error } = await stripe.redirectToCheckout({
+      const { error: checkoutError } = await stripe.redirectToCheckout({
         lineItems: [{ price: priceIds[plan], quantity: 1 }],
         mode: 'subscription',
         successUrl: window.location.origin + '/',
         cancelUrl: window.location.origin + '/',
-=======
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/create-checkout-session`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ plan })
->>>>>>> 0c95d5468176c8e443f571d7768ea7cad7d1a300
       });
 
-      const session = await response.json();
-
-      const stripe = await loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
-      const { error } = await stripe.redirectToCheckout({
-        sessionId: session.id
-      });
-
-      if (error) throw error;
+      if (checkoutError) throw checkoutError;
     } catch (err) {
       setError('Payment initialization failed. Please try again.');
       console.error('Checkout error:', err);
@@ -142,14 +122,8 @@ function Pricing() {
       variant="contained"
       color="primary"
       onClick={() => handleCheckout(plan)}
-<<<<<<< HEAD
     >
       BUY NOW
-=======
-      disabled={loading}
-    >
-      {loading ? 'Processing...' : 'BUY NOW'}
->>>>>>> 0c95d5468176c8e443f571d7768ea7cad7d1a300
     </ModernButton>
   );
 
@@ -274,6 +248,79 @@ function Pricing() {
             </Paper>
           </Grid>
         </Grid>
+
+        {/* Feature Comparison */}
+        <Box sx={{ mt: 8, mb: 8 }}>
+          <Typography variant="h4" gutterBottom>Feature Comparison</Typography>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Feature</TableCell>
+                  <TableCell>PRO LITE</TableCell>
+                  <TableCell>PRO</TableCell>
+                  <TableCell>EXCLUSIVE</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                <TableRow>
+                  <TableCell>Product Checks</TableCell>
+                  <TableCell>200/month</TableCell>
+                  <TableCell>500/month</TableCell>
+                  <TableCell>Unlimited</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Discord Alerts</TableCell>
+                  <TableCell>3/week</TableCell>
+                  <TableCell>10/week</TableCell>
+                  <TableCell>Unlimited</TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell>Market Analysis</TableCell>
+                  <TableCell>Basic</TableCell>
+                  <TableCell>Advanced</TableCell>
+                  <TableCell>Premium</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
+
+        {/* Testimonials */}
+        <Box sx={{ mt: 8 }}>
+          <Typography variant="h4" gutterBottom>What Our Users Say</Typography>
+          <Grid container spacing={4}>
+            {/*
+              Testimonials data can be fetched from an API or defined here statically
+            */}
+            {[
+              {
+                text: "Although FlipVault is my own product, I genuinely believe it has revolutionized the way I approach reselling.",
+                author: "Juggy Resells",
+                role: "Reselling Mentor"
+              },
+              {
+                text: "FlipVault is helpful when I expand into a load of different products.",
+                author: "Impact",
+                role: "Exclusive Member"
+              },
+              {
+                text: "Been teasing us with FlipVault, so keen for the drop",
+                author: "Swiggy Resells",
+                role: "Exclusive Member"
+              }
+            ].map((testimonial, index) => (
+              <Grid item xs={12} md={4} key={index}>
+                <Paper sx={{ p: 3, height: '100%', bgcolor: 'background.paper' }}>
+                  <Typography variant="body1" paragraph>"{testimonial.text}"</Typography>
+                  <Typography variant="subtitle1" color="primary">{testimonial.author}</Typography>
+                  <Typography variant="body2" color="text.secondary">{testimonial.role}</Typography>
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+
         {error && (
           <Typography color="error" sx={{ mt: 2 }}>
             {error}

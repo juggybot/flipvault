@@ -117,9 +117,9 @@ function Login() {
         style={{
           padding: '30px',
           maxWidth: '400px',
-          margin: '100px auto', // Increased margin for better centering
-          backgroundColor: '#2c2c2c', // Darker background color for the paper
-          borderRadius: '12px', // Rounded corners for a modern look
+          margin: '100px auto',
+          backgroundColor: '#2c2c2c',
+          borderRadius: '12px',
         }}
       >
         <Typography variant="h6" gutterBottom style={{ textAlign: 'center', color: '#e0e0e0' }}>
@@ -191,6 +191,24 @@ function Login() {
             LOGIN
           </ModernButton>
         </form>
+        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between' }}>
+          <Button
+            color="primary"
+            component={Link}
+            to="/register"
+            sx={{ textTransform: 'none' }}
+          >
+            Create Account
+          </Button>
+          <Button
+            color="primary"
+            component={Link}
+            to="/forgot-password"
+            sx={{ textTransform: 'none' }}
+          >
+            Forgot Password?
+          </Button>
+        </Box>
       </Paper>
     </ThemeProvider>
   );
