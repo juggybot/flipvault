@@ -11,6 +11,7 @@ import FeeCalculatorPage from './FeeCalculator';
 import ProductCard from '../components/ProductCard';
 import AdminDashboard from './AdminDashboard';
 import AdminLogin from './AdminLogin'; 
+import Register from './Register'; // Import Register component
 
 const theme = createTheme({
   palette: {
@@ -43,10 +44,12 @@ function App() {
           <Route path="/user-dashboard/*" element={<UserDashboard />} /> {/* Add trailing * */}
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           <Route path="/fee-calculator/*" element={<FeeCalculatorPage />} />
           <Route path="/productcard/:productId" element={<ProductCard />} />
           <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/register" element={<Register />} /> {/* Add register route */}
         </Routes>
       </Router>
     </ThemeProvider>
