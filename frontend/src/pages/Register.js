@@ -52,7 +52,6 @@ const ModernButton = styled(Button)({
 
 function Register() {
   const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -78,12 +77,6 @@ function Register() {
       return;
     }
 
-    if (!email.includes('@')) {
-      setError('Please enter a valid email address');
-      setLoading(false);
-      return;
-    }
-
     try {
       const response = await fetch('https://flipvault-afea58153afb.herokuapp.com/register', {
         method: 'POST',
@@ -92,7 +85,6 @@ function Register() {
         },
         body: JSON.stringify({
           username,
-          email,
           password,
         }),
       });
@@ -174,34 +166,6 @@ function Register() {
             margin="normal"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            InputProps={{
-              style: { color: '#e0e0e0' },
-            }}
-            InputLabelProps={{
-              style: { color: '#9e9e9e' },
-            }}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                '& fieldset': {
-                  borderColor: '#616161',
-                },
-                '&:hover fieldset': {
-                  borderColor: '#9e9e9e',
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: theme.palette.primary.main,
-                },
-              },
-            }}
-          />
-          <TextField
-            label="Email"
-            type="email"
-            variant="outlined"
-            fullWidth
-            margin="normal"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
             InputProps={{
               style: { color: '#e0e0e0' },
             }}
