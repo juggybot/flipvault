@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks, Body, Requ
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from backend.database import SessionLocal, init_db
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from backend import crud, models
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from typing import Optional
@@ -135,6 +135,7 @@ class LoginRequest(BaseModel):
 class UserCreate(BaseModel):
     username: str
     password: str
+    email: EmailStr
 
 # Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -142,11 +143,19 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 @app.post("/register")
 def register_user(user: UserCreate, db: Session = Depends(get_db)):
     existing_user = crud.get_user_by_username(db, username=user.username)
-    if (existing_user):
+    if existing_user:
         raise HTTPException(status_code=400, detail="Username already registered")
+        
+    existing_email = crud.get_user_by_email(db, email=user.email)
+    if existing_email:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    # Password validation
+    if len(user.password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters long")
 
     hashed_password = pwd_context.hash(user.password)
-    new_user = crud.create_user(db, username=user.username, hashed_password=hashed_password)
+    new_user = crud.create_user(db, username=user.username, email=user.email, hashed_password=hashed_password)
     return {"message": "User registered successfully"}
 
 @app.post("/login")

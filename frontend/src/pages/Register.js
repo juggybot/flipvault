@@ -55,13 +55,32 @@ function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    // Validation
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long');
+      setLoading(false);
+      return;
+    }
+
     if (password !== confirmPassword) {
-      alert('Passwords do not match');
+      setError('Passwords do not match');
+      setLoading(false);
+      return;
+    }
+
+    if (!email.includes('@')) {
+      setError('Please enter a valid email address');
+      setLoading(false);
       return;
     }
 
@@ -79,15 +98,16 @@ function Register() {
       });
 
       const data = await response.json();
+      
       if (response.ok) {
-        localStorage.setItem('username', username);
-        navigate('/login');
+        navigate('/login', { state: { message: 'Registration successful! Please log in.' } });
       } else {
-        alert(data.message || 'Registration failed');
+        setError(data.detail || 'Registration failed');
       }
     } catch (error) {
-      console.error('Registration error:', error);
-      alert('Registration failed');
+      setError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -141,6 +161,11 @@ function Register() {
         <Typography variant="h6" gutterBottom style={{ textAlign: 'center', color: '#e0e0e0' }}>
           CREATE YOUR ACCOUNT
         </Typography>
+        {error && (
+          <Typography color="error" sx={{ mb: 2, textAlign: 'center' }}>
+            {error}
+          </Typography>
+        )}
         <form onSubmit={handleSubmit}>
           <TextField
             label="Username"
@@ -258,9 +283,10 @@ function Register() {
             variant="contained"
             color="primary"
             fullWidth
+            disabled={loading}
             style={{ marginTop: '24px', padding: '12px', fontSize: '1rem' }}
           >
-            REGISTER
+            {loading ? 'REGISTERING...' : 'REGISTER'}
           </ModernButton>
           <Box sx={{ mt: 2, textAlign: 'center' }}>
             <Typography variant="body2" sx={{ color: '#9e9e9e' }}>
