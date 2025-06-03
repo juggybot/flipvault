@@ -46,6 +46,24 @@ function UserDashboard() {
 
   const drawerWidth = 240;
 
+  // New state to track best performing products over the last 24/48 hrs
+  const [bestProducts, setBestProducts] = useState([]);
+
+  useEffect(() => {
+    // Simulate fetching best performing products from an API or database.
+    // Replace this simulation with an actual API call if available.
+    const fetchBestProducts = async () => {
+      // Dummy data representing products performing well in the last 24/48 hrs.
+      const data = [
+        { id: 1, name: "Product A", period: "24hrs", score: 85 },
+        { id: 2, name: "Product B", period: "48hrs", score: 90 },
+      ];
+      setBestProducts(data);
+    };
+
+    fetchBestProducts();
+  }, []);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -167,9 +185,10 @@ function UserDashboard() {
       >
         <Toolbar />
         <Container maxWidth="lg" sx={{ mt: 4 }}>
-          <Typography variant="h4" sx={{ textAlign: 'center', mb: 2, color: '#fff', fontWeight: 'bold' }}>USER DASHBOARD</Typography>
+          <Typography variant="h4" sx={{ textAlign: 'center', mb: 2, color: '#fff', fontWeight: 'bold' }}>
+            USER DASHBOARD
+          </Typography>
           <Grid container spacing={3}>
-            
             <Grid item xs={12} md={6}>
               <Paper
                 sx={{
@@ -206,7 +225,7 @@ function UserDashboard() {
                 <Typography variant="body1">{subscriptionDate}</Typography>
               </Paper>
             </Grid>
-            <Grid item xs={12}>
+            <Grid item xs={12} md={6}>
               <Paper
                 sx={{
                   p: 3,
@@ -219,9 +238,33 @@ function UserDashboard() {
                 }}
               >
                 <Typography variant="h6" gutterBottom fontWeight="medium">
-                  Product News / Alerts
+                  Update Log
                 </Typography>
-                <Typography variant="body1">No new alerts.</Typography>
+                <Typography variant="body1">V0.1 - Initial release</Typography>
+              </Paper>
+            </Grid>
+            <Grid item xs={12}>
+              <Paper
+                sx={{
+                  p: 3,
+                  backgroundColor: '#333',
+                  color: '#fff',
+                  borderRadius: 2,
+                  boxShadow: '0px 4px 12px rgba(0,0,0,0.15)',
+                }}
+              >
+                <Typography variant="h6" gutterBottom fontWeight="medium">
+                  Top Performing Products (Last 24/48 hrs)
+                </Typography>
+                {bestProducts.length ? (
+                  bestProducts.map((product) => (
+                    <Typography key={product.id} variant="body1">
+                      {product.name} ({product.period}) - Score: {product.score}
+                    </Typography>
+                  ))
+                ) : (
+                  <Typography variant="body1">No top performing products at the moment.</Typography>
+                )}
               </Paper>
             </Grid>
           </Grid>

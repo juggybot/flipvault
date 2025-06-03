@@ -196,7 +196,7 @@ const AdminDashboard = () => {
                         <Typography variant="h5" gutterBottom>Users</Typography>
                         <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
                             <thead>
-                                <tr style={{ backgroundColor: '#f5f5f5', borderBottom: '2px solid #ddd' }}>
+                                <tr style={{ borderBottom: '2px solid #ddd' }}>
                                     <th style={{ padding: '12px', textAlign: 'left' }}>ID</th>
                                     <th style={{ padding: '12px', textAlign: 'left' }}>Username</th>
                                     <th style={{ padding: '12px', textAlign: 'left' }}>Created At</th>
