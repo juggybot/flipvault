@@ -9,50 +9,13 @@ const AdminDashboard = () => {
     const navigate = useNavigate();
     const [products, setProducts] = useState([]);
     const [users, setUsers] = useState([]);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [credentials, setCredentials] = useState({ username: '', password: '' });
+    const [isAuthenticated, setIsAuthenticated] = useState(true); // Changed to true
     const [currentTab, setCurrentTab] = useState(0);
 
     useEffect(() => {
-        checkAuth();
-    }, []);
-
-    const checkAuth = async () => {
-        const token = localStorage.getItem('adminToken');
-        if (!token) {
-            setIsAuthenticated(false);
-            return;
-        }
-        // Verify token with backend if needed
-        setIsAuthenticated(true);
         fetchProducts();
         fetchUsers();
-    };
-
-    const handleLogin = async (e) => {
-        e.preventDefault();
-        try {
-            const response = await fetch('https://flipvault-afea58153afb.herokuapp.com/admin/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Basic ' + btoa(`${credentials.username}:${credentials.password}`)
-                },
-            });
-
-            if (response.ok) {
-                setIsAuthenticated(true);
-                localStorage.setItem('adminToken', 'your-token-here');
-                fetchProducts();
-                fetchUsers();
-            } else {
-                alert('Invalid credentials');
-            }
-        } catch (error) {
-            console.error('Login error:', error);
-            alert('Login failed');
-        }
-    };
+    }, []);
 
     const fetchUsers = async () => {
         try {
