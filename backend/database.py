@@ -93,13 +93,17 @@ def init_db():
                 default_username = "testuser"
                 existing_user = db.query(User).filter(User.username == default_username).first()
                 if not existing_user:
-                    hashed_password = pwd_context.hash("testpassword")  # Hash the default password
-                    default_user = User(username=default_username, hashed_password=hashed_password)
+                    print(f"Creating default user: {default_username}")
+                    hashed_password = pwd_context.hash("testpassword")
+                    default_user = User(
+                        username=default_username,
+                        hashed_password=hashed_password,
+                    )
                     db.add(default_user)
                     db.commit()
-                    print("Default user created successfully!")
+                    print(f"Default user created with ID: {default_user.id}")
                 else:
-                    print("Default user already exists.")
+                    print(f"Default user exists with ID: {existing_user.id}")
             except Exception as e:
                 print(f"Error creating test data: {e}")
                 db.rollback()

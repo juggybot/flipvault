@@ -28,7 +28,10 @@ const AdminDashboard = () => {
             });
             if (response.ok) {
                 const data = await response.json();
-                setUsers(data);
+                console.log('Fetched users:', data); // Debug log
+                setUsers(Array.isArray(data) ? data : []);
+            } else {
+                console.error('Failed to fetch users:', response.status);
             }
         } catch (error) {
             console.error('Error fetching users:', error);
