@@ -191,25 +191,26 @@ const AdminDashboard = () => {
                 {currentTab === 1 && (
                     <Box sx={{ width: '100%', mt: 3 }}>
                         <Typography variant="h5" gutterBottom>Users</Typography>
-                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
                             <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Username</th>
-                                    <th>Email</th>
-                                    <th>Actions</th>
+                                <tr style={{ backgroundColor: '#f5f5f5', borderBottom: '2px solid #ddd' }}>
+                                    <th style={{ padding: '12px', textAlign: 'left' }}>ID</th>
+                                    <th style={{ padding: '12px', textAlign: 'left' }}>Username</th>
+                                    <th style={{ padding: '12px', textAlign: 'left' }}>Created At</th>
+                                    <th style={{ padding: '12px', textAlign: 'left' }}>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {users.map(user => (
-                                    <tr key={user.id}>
-                                        <td>{user.id}</td>
-                                        <td>{user.username}</td>
-                                        <td>{user.email}</td>
-                                        <td>
+                                    <tr key={user.id} style={{ borderBottom: '1px solid #ddd' }}>
+                                        <td style={{ padding: '12px' }}>{user.id}</td>
+                                        <td style={{ padding: '12px' }}>{user.username}</td>
+                                        <td style={{ padding: '12px' }}>{new Date(user.created_at).toLocaleString()}</td>
+                                        <td style={{ padding: '12px' }}>
                                             <Button 
                                                 size="small" 
-                                                color="secondary"
+                                                color="error"
+                                                variant="contained"
                                                 onClick={() => handleDeleteUser(user.id)}
                                             >
                                                 Delete
