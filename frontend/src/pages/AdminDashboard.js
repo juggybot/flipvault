@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Container, Typography, Box } from '@mui/material';
+import { Button, Container, Typography, Box, Tab, Tabs, TextField } from '@mui/material';
 import { createProduct, deleteProduct, scrapeProducts, scrapeProduct } from '../services/api';
 import ProductForm from '../components/ProductForm';
 import ProductList from '../components/ProductList';
@@ -8,10 +8,69 @@ import ProductList from '../components/ProductList';
 const AdminDashboard = () => {
     const navigate = useNavigate();
     const [products, setProducts] = useState([]);
+    const [users, setUsers] = useState([]);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [credentials, setCredentials] = useState({ username: '', password: '' });
+    const [currentTab, setCurrentTab] = useState(0);
 
     useEffect(() => {
-        fetchProducts();
+        checkAuth();
     }, []);
+
+    const checkAuth = async () => {
+        const token = localStorage.getItem('adminToken');
+        if (!token) {
+            setIsAuthenticated(false);
+            return;
+        }
+        // Verify token with backend if needed
+        setIsAuthenticated(true);
+        fetchProducts();
+        fetchUsers();
+    };
+
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await fetch('https://flipvault-afea58153afb.herokuapp.com/admin/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Basic ' + btoa(`${credentials.username}:${credentials.password}`)
+                },
+            });
+
+            if (response.ok) {
+                setIsAuthenticated(true);
+                localStorage.setItem('adminToken', 'your-token-here');
+                fetchProducts();
+                fetchUsers();
+            } else {
+                alert('Invalid credentials');
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            alert('Login failed');
+        }
+    };
+
+    const fetchUsers = async () => {
+        try {
+            const response = await fetch('https://flipvault-afea58153afb.herokuapp.com/users', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Basic ' + btoa('juggy:Idus1234@@')
+                },
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setUsers(data);
+            }
+        } catch (error) {
+            console.error('Error fetching users:', error);
+        }
+    };
 
     const fetchProducts = async () => {
         try {
@@ -78,7 +137,67 @@ const AdminDashboard = () => {
     const handleScrape = (id) => {
         scrapeProduct(id);
     };
-    
+
+    const handleDeleteUser = async (userId) => {
+        try {
+            const response = await fetch(`https://flipvault-afea58153afb.herokuapp.com/users/${userId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Basic ' + btoa('juggy:Idus1234@@')
+                },
+            });
+
+            if (response.ok) {
+                setUsers(users.filter(user => user.id !== userId));
+                alert('User deleted successfully');
+            } else {
+                alert('Error deleting user');
+            }
+        } catch (error) {
+            console.error('Error deleting user:', error);
+            alert('Error deleting user');
+        }
+    };
+
+    if (!isAuthenticated) {
+        return (
+            <Container maxWidth="sm">
+                <Box sx={{ mt: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <Typography variant="h4" component="h1" gutterBottom>
+                        Admin Login
+                    </Typography>
+                    <Box component="form" onSubmit={handleLogin} sx={{ mt: 1 }}>
+                        <TextField
+                            margin="normal"
+                            required
+                            fullWidth
+                            label="Username"
+                            value={credentials.username}
+                            onChange={(e) => setCredentials({...credentials, username: e.target.value})}
+                        />
+                        <TextField
+                            margin="normal"
+                            required
+                            fullWidth
+                            label="Password"
+                            type="password"
+                            value={credentials.password}
+                            onChange={(e) => setCredentials({...credentials, password: e.target.value})}
+                        />
+                        <Button
+                            type="submit"
+                            fullWidth
+                            variant="contained"
+                            sx={{ mt: 3, mb: 2 }}
+                        >
+                            Sign In
+                        </Button>
+                    </Box>
+                </Box>
+            </Container>
+        );
+    }
 
     return (
         <Container>
@@ -86,16 +205,59 @@ const AdminDashboard = () => {
                 <Typography variant="h2" component="h1" gutterBottom>
                     Admin Dashboard
                 </Typography>
-                <ProductForm onCreate={handleCreateProduct} />
-                <Button 
-                    variant="contained" 
-                    color="primary" 
-                    onClick={handleScrapeProducts} 
-                    style={{ marginTop: '20px', marginBottom: '20px' }}
-                >
-                    Run Scraper
-                </Button>
-                <ProductList products={products} onDelete={handleDeleteProduct} onScrape={handleScrape}/>
+                <Tabs value={currentTab} onChange={(e, newValue) => setCurrentTab(newValue)}>
+                    <Tab label="Products" />
+                    <Tab label="Users" />
+                </Tabs>
+
+                {currentTab === 0 && (
+                    <Box sx={{ width: '100%', mt: 3 }}>
+                        <ProductForm onCreate={handleCreateProduct} />
+                        <Button 
+                            variant="contained" 
+                            color="primary" 
+                            onClick={handleScrapeProducts} 
+                            style={{ marginTop: '20px', marginBottom: '20px' }}
+                        >
+                            Run Scraper
+                        </Button>
+                        <ProductList products={products} onDelete={handleDeleteProduct} onScrape={handleScrape}/>
+                    </Box>
+                )}
+
+                {currentTab === 1 && (
+                    <Box sx={{ width: '100%', mt: 3 }}>
+                        <Typography variant="h5" gutterBottom>Users</Typography>
+                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {users.map(user => (
+                                    <tr key={user.id}>
+                                        <td>{user.id}</td>
+                                        <td>{user.username}</td>
+                                        <td>{user.email}</td>
+                                        <td>
+                                            <Button 
+                                                size="small" 
+                                                color="secondary"
+                                                onClick={() => handleDeleteUser(user.id)}
+                                            >
+                                                Delete
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </Box>
+                )}
             </Box>
         </Container>
     );
