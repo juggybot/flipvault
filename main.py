@@ -5,17 +5,17 @@ from backend.database import SessionLocal, init_db
 from pydantic import BaseModel
 from backend import crud, models
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from typing import Optional
+from typing import Optional, List
 from backend.services.scraper import run_scraper
 from fastapi.responses import JSONResponse
 from sqlalchemy import create_engine 
 from sqlalchemy.ext.declarative import declarative_base
 import json
-from typing import List
 from passlib.context import CryptContext
 import stripe
 import os
 import httpx
+import datetime
 
 app = FastAPI()
 
@@ -358,3 +358,17 @@ async def convert_currency(amount: float, to: str):
 @app.get("/health")
 def health_check():
     return {"status": "healthy"}
+
+class UserResponse(BaseModel):
+    id: int
+    username: str
+    created_at: datetime.datetime
+
+    class Config:
+        from_attributes = True
+
+@app.get("/users", response_model=List[UserResponse])
+def get_users(db: Session = Depends(get_db), credentials: HTTPBasicCredentials = Depends(security)):
+    verify_password(credentials)
+    users = db.query(models.User).all()
+    return users
