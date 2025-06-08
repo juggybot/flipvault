@@ -62,7 +62,7 @@ function Pricing() {
   };
 
   useEffect(() => {
-    // Load Stripe.js on component mount
+    // Load Stripe.js on component mount, if not already loaded
     if (!window.Stripe) {
       const stripeScript = document.createElement('script');
       stripeScript.src = 'https://js.stripe.com/v3/';
@@ -71,35 +71,55 @@ function Pricing() {
 
       stripeScript.onload = () => {
         console.log('Stripe.js loaded successfully');
+        initializeStripe();
       };
 
       stripeScript.onerror = () => {
         console.error('Failed to load Stripe.js');
+        setError('Failed to load payment processor. Please refresh and try again.');
       };
+    } else {
+      initializeStripe();
     }
   }, []);
 
-  const handleCheckout = async (plan) => {
-    // Initialize Stripe with your public key
+  const initializeStripe = () => {
     const stripePublicKey = process.env.REACT_APP_STRIPE_ENVIRONMENT === 'test'
       ? process.env.REACT_APP_STRIPE_TEST_PUBLIC_KEY
-      : 'pk_test_51Ne35tHB4FuKHL1p15L1LqAnf1v6Et7i3ppuPb1E1mnfGWEirsi5sHuapeqrFztV7B5THeFyxtduHOmCRYoFvyHd00spIOY1Oq';
-    const stripe = window.Stripe(stripePublicKey);
+      : process.env.REACT_APP_STRIPE_PUBLIC_KEY;
 
-    // Map your plans to their respective Stripe Price IDs
-    const priceIds = {
-      'pro-lite': 'price_1RHhUgHB4FuKHL1ppYIJhs8A',
-      'pro': 'price_1RHhUrHB4FuKHL1pbnAkQAsi',
-      'exclusive': 'price_1RHhV2HB4FuKHL1pOJXZ4dj7'
-    };
-
-    if (!priceIds[plan]) {
-      console.error('Invalid plan selected');
+    if (!stripePublicKey) {
+      setError('Stripe public key is not configured.');
       return;
     }
 
+    const stripe = window.Stripe(stripePublicKey);
+    setStripeInstance(stripe);
+  };
+
+  const handleCheckout = async (plan) => {
+    if (!stripeInstance) {
+      setError('Payment processor is not ready. Please wait and try again.');
+      return;
+    }
+
+    // Map your plans to their respective Stripe Price IDs
+    const priceIds = {
+      'pro-lite': process.env.REACT_APP_STRIPE_PRICE_PRO_LITE,
+      'pro': process.env.REACT_APP_STRIPE_PRICE_PRO,
+      'exclusive': process.env.REACT_APP_STRIPE_PRICE_EXCLUSIVE
+    };
+
+    if (!priceIds[plan]) {
+      setError('Invalid plan selected.');
+      return;
+    }
+
+    setError(null);
+    setLoadingPlan(plan);
+
     try {
-      const { error: checkoutError } = await stripe.redirectToCheckout({
+      const { error: checkoutError } = await stripeInstance.redirectToCheckout({
         lineItems: [{ price: priceIds[plan], quantity: 1 }],
         mode: 'subscription',
         successUrl: window.location.origin + '/',
@@ -111,9 +131,10 @@ function Pricing() {
       setError('Payment initialization failed. Please try again.');
       console.error('Checkout error:', err);
     } finally {
-      setLoading(false);
+      setLoadingPlan(null);
     }
   };
+
 
   // Update button rendering:
   const PricingButton = ({ plan }) => (

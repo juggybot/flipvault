@@ -124,4 +124,5 @@ cython_debug/
 proxies.txt
 test.db
 backend/services/scraper.py
-# ...existing code...
+.env
+# ...existing code...frontend/.env

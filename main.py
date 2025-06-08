@@ -50,8 +50,8 @@ def get_db():
 security = HTTPBasic()
 
 def verify_password(credentials: HTTPBasicCredentials):
-    correct_username = "juggy"  # Hardcode for now, move to env vars later
-    correct_password = "Idus1234@@"  # Hardcode for now, move to env vars later
+    correct_username = os.environ.get("ADMIN_USERNAME")
+    correct_password = os.environ.get("ADMIN_PASSWORD")
     
     if credentials.username != correct_username or credentials.password != correct_password:
         raise HTTPException(status_code=401, detail="Incorrect username or password")
@@ -283,7 +283,7 @@ try:
         stripe_public_key = os.environ.get("REACT_APP_STRIPE_TEST_PUBLIC_KEY", "")
     else:
         stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "")
-        stripe_public_key = os.environ.get("REACT_APP_STRIPE_PUBLIC_KEY", "")
+        stripe_public_key = os.environ.get("STRIPE_PUBLIC_KEY", "")
     
     if not stripe.api_key:
         print("WARNING: Stripe API key not set. Stripe functionality will be limited.")
@@ -334,25 +334,6 @@ async def create_checkout_session(request: StripeCheckoutSessionRequest, db: Ses
 
 class CurrencyConversionResponse(BaseModel):
     convertedPrice: float
-
-@app.get("/convert-currency/")
-async def convert_currency(amount: float, to: str):
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(f"https://api.frankfurter.app/latest?amount={amount}&from=USD&to={to}")
-            response.raise_for_status()
-            data = response.json()
-            if data.get("rates") and data["rates"].get(to):
-                converted_price = data["rates"][to]
-                return CurrencyConversionResponse(convertedPrice=converted_price)
-            else:
-                raise HTTPException(status_code=400, detail="Currency conversion failed")
-    except httpx.HTTPStatusError as e:
-        print(f"HTTP error in currency conversion: {e}")
-        raise HTTPException(status_code=e.response.status_code, detail=str(e))
-    except Exception as e:
-        print(f"Error in currency conversion: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 # Health check endpoint
 @app.get("/health")
