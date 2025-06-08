@@ -243,7 +243,7 @@ function UserDashboard() {
                 <Typography variant="body1">V0.1 - Initial release</Typography>
               </Paper>
             </Grid>
-            <Grid item xs={12}>
+            <Grid item xs={12} md={6}>
               <Paper
                 sx={{
                   p: 3,
