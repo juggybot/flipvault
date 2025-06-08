@@ -9,21 +9,21 @@ const theme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#64b5f6', // A slightly more modern blue
+      main: '#64b5f6',
     },
     secondary: {
       main: '#f48fb1',
     },
     background: {
-      default: '#121212', // Darker background
-      paper: '#1e1e1e', // Darker paper
+      default: '#121212',
+      paper: '#1e1e1e',
     },
     text: {
-      primary: '#e0e0e0', // Lighter text
+      primary: '#e0e0e0',
     },
   },
   typography: {
-    fontFamily: 'Roboto, sans-serif', // Use a more modern font
+    fontFamily: 'Roboto, sans-serif',
     h2: {
       fontWeight: 700,
       fontSize: '3rem',
@@ -35,7 +35,6 @@ const theme = createTheme({
   },
 });
 
-// Styled Button Component
 const ModernButton = styled(Button)({
   borderRadius: '8px',
   padding: '12px 24px',
@@ -53,6 +52,7 @@ function Pricing() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [stripeInstance, setStripeInstance] = useState(null);
+  const [stripeReady, setStripeReady] = useState(false); // NEW LINE
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -95,6 +95,7 @@ function Pricing() {
 
     const stripe = window.Stripe(stripePublicKey);
     setStripeInstance(stripe);
+    setStripeReady(true); // NEW LINE
   };
 
   const handleCheckout = async (plan) => {
@@ -138,18 +139,17 @@ function Pricing() {
     }
   };
 
-  // Update button rendering:
   const PricingButton = ({ plan }) => (
     <ModernButton
       variant="contained"
       color="primary"
+      disabled={loading || !stripeReady} // NEW LINE
       onClick={() => handleCheckout(plan)}
     >
-      BUY NOW
+      {loading ? 'Processing...' : 'BUY NOW'}
     </ModernButton>
   );
 
-  // Add error display
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -191,87 +191,27 @@ function Pricing() {
           PRICING AND PLANS
         </Typography>
         <Grid container spacing={4}>
-          <Grid item xs={12} md={4}>
-            <Paper
-              sx={{
-                p: 3,
-                bgcolor: 'background.paper',
-                borderRadius: 2,
-                boxShadow: 3,
-              }}
-            >
-              <Typography variant="h5" sx={{ mb: 2 }}>
-                PRO LITE
-              </Typography>
-              <Typography variant="h4" sx={{ mb: 1 }}>
-                $10 USD
-              </Typography>
-              <Typography variant="subtitle1" sx={{ mb: 2 }}>
-                Per 30 days
-              </Typography>
-              <Box component="ul" sx={{ textAlign: 'left', pl: 3, mb: 3 }}>
-                <li>200 product checks monthly</li>
-                <li>Free vendors with every product check</li>
-                <li>3 Discord product alerts a week</li>
-              </Box>
-              <PricingButton plan="pro-lite" />
-            </Paper>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Paper
-              sx={{
-                p: 3,
-                bgcolor: 'background.paper',
-                borderRadius: 2,
-                boxShadow: 3,
-              }}
-            >
-              <Typography variant="h5" sx={{ mb: 2 }}>
-                PRO
-              </Typography>
-              <Typography variant="h4" sx={{ mb: 1 }}>
-                $17 USD
-              </Typography>
-              <Typography variant="subtitle1" sx={{ mb: 2 }}>
-                Per 30 days
-              </Typography>
-              <Box component="ul" sx={{ textAlign: 'left', pl: 3, mb: 3 }}>
-                <li>500 product checks</li>
-                <li>Free vendors with every product</li>
-                <li>10 Discord alerts weekly</li>
-              </Box>
-              <PricingButton plan="pro" />
-            </Paper>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Paper
-              sx={{
-                p: 3,
-                bgcolor: 'background.paper',
-                borderRadius: 2,
-                boxShadow: 3,
-              }}
-            >
-              <Typography variant="h5" sx={{ mb: 2 }}>
-                EXCLUSIVE
-              </Typography>
-              <Typography variant="h4" sx={{ mb: 1 }}>
-                $34 USD
-              </Typography>
-              <Typography variant="subtitle1" sx={{ mb: 2 }}>
-                Lifetime
-              </Typography>
-              <Box component="ul" sx={{ textAlign: 'left', pl: 3, mb: 3 }}>
-                <li>Unlimited product checks</li>
-                <li>Free vendors with every product</li>
-                <li>Unlimited Discord alerts</li>
-              </Box>
-              <PricingButton plan="exclusive" />
-            </Paper>
-          </Grid>
+          {[
+            { plan: 'pro-lite', name: 'PRO LITE', price: '$10 USD', period: 'Per 30 days', features: ['200 product checks monthly', 'Free vendors with every product check', '3 Discord product alerts a week'] },
+            { plan: 'pro', name: 'PRO', price: '$17 USD', period: 'Per 30 days', features: ['500 product checks', 'Free vendors with every product', '10 Discord alerts weekly'] },
+            { plan: 'exclusive', name: 'EXCLUSIVE', price: '$34 USD', period: 'Lifetime', features: ['Unlimited product checks', 'Free vendors with every product', 'Unlimited Discord alerts'] }
+          ].map(({ plan, name, price, period, features }) => (
+            <Grid item xs={12} md={4} key={plan}>
+              <Paper sx={{ p: 3, bgcolor: 'background.paper', borderRadius: 2, boxShadow: 3 }}>
+                <Typography variant="h5" sx={{ mb: 2 }}>{name}</Typography>
+                <Typography variant="h4" sx={{ mb: 1 }}>{price}</Typography>
+                <Typography variant="subtitle1" sx={{ mb: 2 }}>{period}</Typography>
+                <Box component="ul" sx={{ textAlign: 'left', pl: 3, mb: 3 }}>
+                  {features.map((feature, i) => (
+                    <li key={i}>{feature}</li>
+                  ))}
+                </Box>
+                <PricingButton plan={plan} />
+              </Paper>
+            </Grid>
+          ))}
         </Grid>
 
-        {/* Feature Comparison */}
         <Box sx={{ mt: 8, mb: 8 }}>
           <Typography variant="h4" gutterBottom>Feature Comparison</Typography>
           <TableContainer component={Paper}>
@@ -308,29 +248,13 @@ function Pricing() {
           </TableContainer>
         </Box>
 
-        {/* Testimonials */}
         <Box sx={{ mt: 8 }}>
           <Typography variant="h4" gutterBottom>What Our Users Say</Typography>
           <Grid container spacing={4}>
-            {/*
-              Testimonials data can be fetched from an API or defined here statically
-            */}
             {[
-              {
-                text: "Although FlipVault is my own product, I genuinely believe it has revolutionized the way I approach reselling.",
-                author: "Juggy Resells",
-                role: "Reselling Mentor"
-              },
-              {
-                text: "FlipVault is helpful when I expand into a load of different products.",
-                author: "Impact",
-                role: "Exclusive Member"
-              },
-              {
-                text: "Been teasing us with FlipVault, so keen for the drop",
-                author: "Swiggy Resells",
-                role: "Exclusive Member"
-              }
+              { text: "Although FlipVault is my own product, I genuinely believe it has revolutionized the way I approach reselling.", author: "Juggy Resells", role: "Reselling Mentor" },
+              { text: "FlipVault is helpful when I expand into a load of different products.", author: "Impact", role: "Exclusive Member" },
+              { text: "Been teasing us with FlipVault, so keen for the drop", author: "Swiggy Resells", role: "Exclusive Member" }
             ].map((testimonial, index) => (
               <Grid item xs={12} md={4} key={index}>
                 <Paper sx={{ p: 3, height: '100%', bgcolor: 'background.paper' }}>
