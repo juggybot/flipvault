@@ -116,9 +116,15 @@ function Pricing() {
         throw new Error('Invalid plan selected');
       }
 
+      const mode = plan === 'exclusive' ? 'payment' : 'subscription';
+
+      console.log('Using Stripe instance:', stripeInstance);
+      console.log('Selected priceId:', priceIds[plan]);
+      console.log('Mode:', mode);
+
       const { error: checkoutError } = await stripeInstance.redirectToCheckout({
         lineItems: [{ price: priceIds[plan], quantity: 1 }],
-        mode: 'subscription',
+        mode,
         successUrl: window.location.origin + '/',
         cancelUrl: window.location.origin + '/',
       });
