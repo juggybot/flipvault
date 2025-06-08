@@ -62,7 +62,6 @@ function Pricing() {
   };
 
   useEffect(() => {
-    // Load Stripe.js on component mount, if not already loaded
     if (!window.Stripe) {
       const stripeScript = document.createElement('script');
       stripeScript.src = 'https://js.stripe.com/v3/';
@@ -76,7 +75,7 @@ function Pricing() {
 
       stripeScript.onerror = () => {
         console.error('Failed to load Stripe.js');
-        setError('Failed to load payment processor. Please refresh and try again.');
+        setError('Failed to load Stripe.js');
       };
     } else {
       initializeStripe();
@@ -98,27 +97,24 @@ function Pricing() {
   };
 
   const handleCheckout = async (plan) => {
-    if (!stripeInstance) {
-      setError('Payment processor is not ready. Please wait and try again.');
-      return;
-    }
-
-    // Map your plans to their respective Stripe Price IDs
-    const priceIds = {
-      'pro-lite': process.env.REACT_APP_STRIPE_PRICE_PRO_LITE,
-      'pro': process.env.REACT_APP_STRIPE_PRICE_PRO,
-      'exclusive': process.env.REACT_APP_STRIPE_PRICE_EXCLUSIVE
-    };
-
-    if (!priceIds[plan]) {
-      setError('Invalid plan selected.');
-      return;
-    }
-
+    setLoading(true);
     setError(null);
-    setLoadingPlan(plan);
 
     try {
+      if (!stripeInstance) {
+        throw new Error('Stripe instance is not initialized.');
+      }
+
+      const priceIds = {
+        'pro-lite': process.env.REACT_APP_STRIPE_PRICE_PRO_LITE,
+        'pro': process.env.REACT_APP_STRIPE_PRICE_PRO,
+        'exclusive': process.env.REACT_APP_STRIPE_PRICE_EXCLUSIVE
+      };
+
+      if (!priceIds[plan]) {
+        throw new Error('Invalid plan selected');
+      }
+
       const { error: checkoutError } = await stripeInstance.redirectToCheckout({
         lineItems: [{ price: priceIds[plan], quantity: 1 }],
         mode: 'subscription',
@@ -131,10 +127,9 @@ function Pricing() {
       setError('Payment initialization failed. Please try again.');
       console.error('Checkout error:', err);
     } finally {
-      setLoadingPlan(null);
+      setLoading(false);
     }
   };
-
 
   // Update button rendering:
   const PricingButton = ({ plan }) => (
