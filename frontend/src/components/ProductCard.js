@@ -262,7 +262,7 @@ function ProductCard() {
                             <img
                                 src={product.image_url}
                                 alt={product.name || 'Product'}
-                                style={{ width: '370px', height: '200px', borderRadius: '4px' }}
+                                style={{ width: '256px', height: '256px', borderRadius: '4px' }}
                             />
                         ) : (
                             <React.Fragment>
