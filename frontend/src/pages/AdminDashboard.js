@@ -285,8 +285,8 @@ const AdminDashboard = () => {
                                                 size="small"
                                             >
                                                 <option value="Free">Free</option>
-                                                <option value="Pro">Pro Lite</option>
-                                                <option value="Pro Plus">Pro</option>
+                                                <option value="Pro Lite">Pro Lite</option>
+                                                <option value="Pro">Pro</option>
                                                 <option value="Exclusive">Exclusive</option>
                                             </TextField>
                                         </td>
