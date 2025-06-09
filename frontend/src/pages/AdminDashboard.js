@@ -9,7 +9,7 @@ const AdminDashboard = () => {
     const navigate = useNavigate();
     const [products, setProducts] = useState([]);
     const [users, setUsers] = useState([]);
-    const [isAuthenticated, setIsAuthenticated] = useState(true); // Changed to true
+    const [isAuthenticated, setIsAuthenticated] = useState(false); // Changed to false initially
     const [currentTab, setCurrentTab] = useState(0);
     const [credentials, setCredentials] = useState({
         username: '',
@@ -17,9 +17,21 @@ const AdminDashboard = () => {
     });
 
     useEffect(() => {
-        fetchProducts();
-        fetchUsers();
-    }, []);
+        // Only fetch data if authenticated
+        if (isAuthenticated) {
+            fetchProducts();
+            fetchUsers();
+        }
+    }, [isAuthenticated]);
+
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        if (credentials.username === 'admin' && credentials.password === 'admin123') {
+            setIsAuthenticated(true);
+        } else {
+            alert('Invalid credentials');
+        }
+    };
 
     const fetchUsers = async () => {
         try {
@@ -167,6 +179,9 @@ const AdminDashboard = () => {
                             required
                             fullWidth
                             label="Username"
+                            name="username"
+                            autoComplete="username"
+                            autoFocus
                             value={credentials.username}
                             onChange={(e) => setCredentials({...credentials, username: e.target.value})}
                         />
@@ -174,8 +189,10 @@ const AdminDashboard = () => {
                             margin="normal"
                             required
                             fullWidth
+                            name="password"
                             label="Password"
                             type="password"
+                            autoComplete="current-password"
                             value={credentials.password}
                             onChange={(e) => setCredentials({...credentials, password: e.target.value})}
                         />
@@ -250,7 +267,8 @@ const AdminDashboard = () => {
                                                 size="small"
                                             >
                                                 <option value="Free">Free</option>
-                                                <option value="Pro">Pro</option>
+                                                <option value="Pro">Pro Lite</option>
+                                                <option value="Pro Plus">Pro</option>
                                                 <option value="Exclusive">Exclusive</option>
                                             </TextField>
                                         </td>
