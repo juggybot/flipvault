@@ -209,6 +209,7 @@ const AdminDashboard = () => {
                                         <td style={{ padding: '12px' }}>{user.id}</td>
                                         <td style={{ padding: '12px' }}>{user.username}</td>
                                         <td style={{ padding: '12px' }}>{new Date(user.created_at).toLocaleString()}</td>
+                                        <td style={{ padding: '12px' }}>{user.plan}</td>
                                         <td style={{ padding: '12px' }}>
                                             <Button 
                                                 size="small" 
