@@ -197,7 +197,7 @@ function Pricing() {
         </Typography>
         <Grid container spacing={4}>
           {[
-            { plan: 'pro-lite', name: 'PRO LITE', price: '$10 USD', period: 'Per 30 days', features: ['200 product checks monthly', 'Free vendors with every product check', '3 Discord product alerts a week'] },
+            { plan: 'pro-lite', name: 'PRO LITE', price: '$10 USD', period: 'Per 7 days', features: ['Unlimited product checks weekly', 'Free vendors with every product check', '3 Discord product alerts a week'] },
             { plan: 'pro', name: 'PRO', price: '$17 USD', period: 'Per 30 days', features: ['500 product checks', 'Free vendors with every product', '10 Discord alerts weekly'] },
             { plan: 'exclusive', name: 'EXCLUSIVE', price: '$34 USD', period: 'Lifetime', features: ['Unlimited product checks', 'Free vendors with every product', 'Unlimited Discord alerts'] }
           ].map(({ plan, name, price, period, features }) => (
@@ -216,42 +216,6 @@ function Pricing() {
             </Grid>
           ))}
         </Grid>
-
-        <Box sx={{ mt: 8, mb: 8 }}>
-          <Typography variant="h4" gutterBottom>Feature Comparison</Typography>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Feature</TableCell>
-                  <TableCell>PRO LITE</TableCell>
-                  <TableCell>PRO</TableCell>
-                  <TableCell>EXCLUSIVE</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                <TableRow>
-                  <TableCell>Product Checks</TableCell>
-                  <TableCell>200/month</TableCell>
-                  <TableCell>500/month</TableCell>
-                  <TableCell>Unlimited</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>Discord Alerts</TableCell>
-                  <TableCell>3/week</TableCell>
-                  <TableCell>10/week</TableCell>
-                  <TableCell>Unlimited</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>Market Analysis</TableCell>
-                  <TableCell>Basic</TableCell>
-                  <TableCell>Advanced</TableCell>
-                  <TableCell>Premium</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Box>
 
         <Box sx={{ mt: 8 }}>
           <Typography variant="h4" gutterBottom>What Our Users Say</Typography>
