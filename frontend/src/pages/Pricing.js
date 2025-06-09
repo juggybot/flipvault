@@ -197,20 +197,15 @@ function Pricing() {
         </Typography>
         <Grid container spacing={4}>
           {[
-            { plan: 'pro-lite', name: 'PRO LITE', price: '$10 USD', period: 'Per 7 days', features: ['Unlimited product checks weekly', 'Free vendors with every product check', '3 Discord product alerts a week'] },
-            { plan: 'pro', name: 'PRO', price: '$17 USD', period: 'Per 30 days', features: ['500 product checks', 'Free vendors with every product', '10 Discord alerts weekly'] },
-            { plan: 'exclusive', name: 'EXCLUSIVE', price: '$34 USD', period: 'Lifetime', features: ['Unlimited product checks', 'Free vendors with every product', 'Unlimited Discord alerts'] }
-          ].map(({ plan, name, price, period, features }) => (
+            { plan: 'pro-lite', name: 'PRO LITE', price: '$10 USD', period: 'Per 7 days' },
+            { plan: 'pro', name: 'PRO', price: '$17 USD', period: 'Per 30 days' },
+            { plan: 'exclusive', name: 'EXCLUSIVE', price: '$34 USD', period: 'Lifetime' }
+          ].map(({ plan, name, price, period }) => (
             <Grid item xs={12} md={4} key={plan}>
               <Paper sx={{ p: 3, bgcolor: 'background.paper', borderRadius: 2, boxShadow: 3 }}>
                 <Typography variant="h5" sx={{ mb: 2 }}>{name}</Typography>
                 <Typography variant="h4" sx={{ mb: 1 }}>{price}</Typography>
                 <Typography variant="subtitle1" sx={{ mb: 2 }}>{period}</Typography>
-                <Box component="ul" sx={{ textAlign: 'left', pl: 3, mb: 3 }}>
-                  {features.map((feature, i) => (
-                    <li key={i}>{feature}</li>
-                  ))}
-                </Box>
                 <PricingButton plan={plan} />
               </Paper>
             </Grid>
@@ -221,15 +216,43 @@ function Pricing() {
           <Typography variant="h4" gutterBottom>What Our Users Say</Typography>
           <Grid container spacing={4}>
             {[
-              { text: "Although FlipVault is my own product, I genuinely believe it has revolutionized the way I approach reselling.", author: "Juggy Resells", role: "Reselling Mentor" },
-              { text: "FlipVault is helpful when I expand into a load of different products.", author: "Impact", role: "Exclusive Member" },
-              { text: "Been teasing us with FlipVault, so keen for the drop", author: "Swiggy Resells", role: "Exclusive Member" }
+              {
+                text: "Although FlipVault is my own product, I genuinely believe it has revolutionized the way I approach reselling.",
+                author: "Juggy Resells",
+                role: "Reselling Mentor"
+              },
+              {
+                text: "FlipVault is helpful when I expand into a load of different products.",
+                author: "Impact",
+                role: "Exclusive Member"
+              },
+              {
+                text: "Been teasing us with FlipVault, so keen for the drop",
+                author: "Swiggy Resells",
+                role: "Exclusive Member"
+              }
             ].map((testimonial, index) => (
               <Grid item xs={12} md={4} key={index}>
-                <Paper sx={{ p: 3, height: '100%', bgcolor: 'background.paper' }}>
-                  <Typography variant="body1" paragraph>"{testimonial.text}"</Typography>
-                  <Typography variant="subtitle1" color="primary">{testimonial.author}</Typography>
-                  <Typography variant="body2" color="text.secondary">{testimonial.role}</Typography>
+                <Paper
+                  sx={{
+                    p: 3,
+                    height: '100%',
+                    bgcolor: 'background.paper',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}
+                >
+                  <Typography variant="body1" paragraph sx={{ flexGrow: 1 }}>
+                    "{testimonial.text}"
+                  </Typography>
+                  <Box>
+                    <Typography variant="subtitle1" color="primary">
+                      {testimonial.author}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {testimonial.role}
+                    </Typography>
+                  </Box>
                 </Paper>
               </Grid>
             ))}
