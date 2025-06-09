@@ -12,6 +12,7 @@ import ProductCard from '../components/ProductCard';
 import AdminDashboard from './AdminDashboard';
 import AdminLogin from './AdminLogin'; 
 import Register from './Register'; // Import Register component
+import ProtectedRoute from '../components/ProtectedRoute';
 
 const theme = createTheme({
   palette: {
@@ -39,13 +40,42 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<LandingPage />} />
-          <Route path="/products/*" element={<Products />} />
+          <Route 
+          path="/user-dashboard" 
+          element={
+            <ProtectedRoute>
+              <UserDashboard />
+            </ProtectedRoute>
+          } 
+          />
+          <Route 
+            path="/products" 
+            element={
+              <ProtectedRoute>
+                <Products />
+              </ProtectedRoute>
+            }
+          />
+          <Route 
+            path="/settings" 
+            element={
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
+            }
+          />
+          <Route 
+            path="/fee-calculator" 
+            element={
+              <ProtectedRoute>
+                <FeeCalculatorPage />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/settings" element={<Settings />} />
-          <Route path="/user-dashboard/*" element={<UserDashboard />} /> {/* Add trailing * */}
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/fee-calculator/*" element={<FeeCalculatorPage />} />
           <Route path="/productcard/:productId" element={<ProductCard />} />
           <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />

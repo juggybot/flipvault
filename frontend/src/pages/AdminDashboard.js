@@ -26,7 +26,9 @@ const AdminDashboard = () => {
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        if (credentials.username === 'admin' && credentials.password === 'admin123') {
+        const adminUsername = process.env.REACT_APP_ADMIN_USERNAME;
+        const adminPassword = process.env.REACT_APP_ADMIN_PASSWORD;
+        if (credentials.username === adminUsername && credentials.password === adminPassword) {
             setIsAuthenticated(true);
         } else {
             alert('Invalid credentials');

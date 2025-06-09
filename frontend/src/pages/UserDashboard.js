@@ -46,7 +46,14 @@ function UserDashboard() {
     
     checkAccess();
 
-    // Retrieve username from local storage or context
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate]);
+
+  useEffect(() => {
+    let isMounted = true;
+
     const storedUsername = localStorage.getItem('username');
     if (isMounted && storedUsername) {
       setUsername(storedUsername);
@@ -55,7 +62,7 @@ function UserDashboard() {
     return () => {
       isMounted = false;
     };
-  }, [navigate]);
+  }, []);
 
   const drawerWidth = 240;
 

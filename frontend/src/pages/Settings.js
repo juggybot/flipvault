@@ -50,15 +50,6 @@ function Settings() {
   useEffect(() => {
     let isMounted = true;
 
-    const checkAccess = async () => {
-      const hasPaidPlan = await requirePaidPlan();
-      if (isMounted && !hasPaidPlan) {
-        navigate('/pricing');
-      }
-    };
-    
-    checkAccess();
-
     const storedUsername = localStorage.getItem('username');
     if (isMounted && storedUsername) {
       setUsername(storedUsername);
@@ -67,7 +58,7 @@ function Settings() {
     return () => {
       isMounted = false;
     };
-  }, [navigate]);
+  }, []);
 
   const handleCurrencyChange = (event) => {
     const newCurrency = event.target.value;
