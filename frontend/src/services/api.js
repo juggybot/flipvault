@@ -157,8 +157,18 @@ export const checkUserPlan = async (username) => {
 };
 
 // Add plan management functions
-export const updateUserPlan = (plan) => {
-  localStorage.setItem('userPlan', plan);
+export const updateUserPlan = async (userId, plan) => {
+    try {
+        const response = await axiosInstance.put(`/users/${userId}/plan`, { plan });
+        if (response.ok) {
+            localStorage.setItem('userPlan', plan !== 'Free' ? 'PAID' : 'FREE');
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error('Error updating plan:', error);
+        return false;
+    }
 };
 
 export const getUserPlan = () => {
@@ -166,35 +176,28 @@ export const getUserPlan = () => {
 };
 
 export const requirePaidPlan = async () => {
-  try {
-    // First check localStorage
-    const storedPlan = localStorage.getItem('userPlan');
-    if (storedPlan === 'PAID') {
-      return true;
+    try {
+        const response = await fetch('https://flipvault-afea58153afb.herokuapp.com/check-subscription', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to check subscription');
+        }
+
+        const data = await response.json();
+        const hasPaidPlan = data.plan && data.plan !== 'Free';
+        localStorage.setItem('userPlan', hasPaidPlan ? 'PAID' : 'FREE');
+        
+        return hasPaidPlan;
+    } catch (error) {
+        console.error('Error checking subscription:', error);
+        return false;
     }
-
-    const response = await fetch('https://flipvault-afea58153afb.herokuapp.com/check-subscription', {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to check subscription');
-    }
-
-    const data = await response.json();
-    const hasPaidPlan = data.plan && data.plan !== 'Free';
-    
-    // Update localStorage based on the response
-    localStorage.setItem('userPlan', hasPaidPlan ? 'PAID' : 'FREE');
-    
-    return hasPaidPlan;
-  } catch (error) {
-    console.error('Error checking subscription:', error);
-    return false;
-  }
 };
 

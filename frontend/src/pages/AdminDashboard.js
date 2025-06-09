@@ -9,7 +9,10 @@ const AdminDashboard = () => {
     const navigate = useNavigate();
     const [products, setProducts] = useState([]);
     const [users, setUsers] = useState([]);
-    const [isAuthenticated, setIsAuthenticated] = useState(false); // Changed to false initially
+    const [isAuthenticated, setIsAuthenticated] = useState(() => {
+        // Check localStorage on initial load
+        return localStorage.getItem('isAdminAuthenticated') === 'true';
+    });
     const [currentTab, setCurrentTab] = useState(0);
     const [credentials, setCredentials] = useState({
         username: '',
@@ -29,6 +32,7 @@ const AdminDashboard = () => {
         const adminUsername = process.env.REACT_APP_ADMIN_USERNAME;
         const adminPassword = process.env.REACT_APP_ADMIN_PASSWORD;
         if (credentials.username === adminUsername && credentials.password === adminPassword) {
+            localStorage.setItem('isAdminAuthenticated', 'true');
             setIsAuthenticated(true);
         } else {
             alert('Invalid credentials');
@@ -157,12 +161,21 @@ const AdminDashboard = () => {
 
             if (response.ok) {
                 const updatedUser = await response.json();
-                // Update users list
                 setUsers(users.map(user => user.id === userId ? updatedUser : user));
-                // Update local storage for the affected user
-                if (updatedUser.username === localStorage.getItem('username')) {
-                    localStorage.setItem('userPlan', newPlan !== 'Free' ? 'PAID' : 'FREE');
-                }
+                
+                // Store the updated plan in localStorage and update the server
+                await fetch('https://flipvault-afea58153afb.herokuapp.com/update-plan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Basic ' + btoa('juggy:Idus1234@@')
+                    },
+                    body: JSON.stringify({ 
+                        userId: userId,
+                        plan: newPlan 
+                    })
+                });
+                
                 alert('User plan updated successfully');
             } else {
                 alert('Error updating user plan');
