@@ -57,23 +57,27 @@ function Products() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    let isMounted = true;
+
     const checkAccess = async () => {
       const hasPaidPlan = await requirePaidPlan();
-      if (!hasPaidPlan) {
+      if (isMounted && !hasPaidPlan) {
         navigate('/pricing');
       }
     };
 
     checkAccess();
-
     fetchProducts();
 
-    // Retrieve username from local storage or context
     const storedUsername = localStorage.getItem('username');
-    if (storedUsername) {
+    if (isMounted && storedUsername) {
       setUsername(storedUsername);
     }
-  }, []);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate]);
 
   const fetchProducts = async () => {
     try {

@@ -48,25 +48,26 @@ function Settings() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    let isMounted = true;
+
     const checkAccess = async () => {
       const hasPaidPlan = await requirePaidPlan();
-      if (!hasPaidPlan) {
+      if (isMounted && !hasPaidPlan) {
         navigate('/pricing');
       }
     };
     
     checkAccess();
 
-    // Retrieve username and currency from local storage or context
     const storedUsername = localStorage.getItem('username');
-    if (storedUsername) {
+    if (isMounted && storedUsername) {
       setUsername(storedUsername);
     }
-    const storedCurrency = localStorage.getItem('currency');
-    if (storedCurrency) {
-      setCurrency(storedCurrency);
-    }
-  }, []);
+
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate]);
 
   const handleCurrencyChange = (event) => {
     const newCurrency = event.target.value;

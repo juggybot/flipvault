@@ -35,28 +35,27 @@ function UserDashboard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Retrieve username from local storage or context
-    const storedUsername = localStorage.getItem('username');
-    if (storedUsername) {
-      setUsername(storedUsername);
-    }
-    // Set a dummy subscription date for demonstration
-    const date = new Date();
-    date.setFullYear(date.getFullYear() + 1); // Set to one year from now
-    setSubscriptionDate(date.toLocaleDateString('en-AU', { year: 'numeric', month: '2-digit', day: '2-digit' }));
-  }, []);
+    let isMounted = true;
 
-  useEffect(() => {
     const checkAccess = async () => {
       const hasPaidPlan = await requirePaidPlan();
-      if (!hasPaidPlan) {
+      if (isMounted && !hasPaidPlan) {
         navigate('/pricing');
       }
     };
     
     checkAccess();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+
+    // Retrieve username from local storage or context
+    const storedUsername = localStorage.getItem('username');
+    if (isMounted && storedUsername) {
+      setUsername(storedUsername);
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate]);
 
   const drawerWidth = 240;
 
