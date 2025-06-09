@@ -22,12 +22,16 @@ app = FastAPI()
 # Update the CORS middleware to handle all required headers and methods
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "https://flipvault.netlify.app"],
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_origins=[
+        "http://localhost:3000",
+        "https://flipvault.netlify.app",
+        "https://flipvault-738b0b011a0f.herokuapp.com",
+        "https://flipvault-afea58153afb.herokuapp.com",
+        "https://flipvault.herokuapp.com"
+    ],
+    allow_credentials=False,  # Changed to False since we're not using credentials
+    allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["*"],
-    max_age=600,
 )
 
 # Startup event to properly initialize the database
