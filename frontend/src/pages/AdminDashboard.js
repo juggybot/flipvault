@@ -200,6 +200,7 @@ const AdminDashboard = () => {
                                     <th style={{ padding: '12px', textAlign: 'left' }}>ID</th>
                                     <th style={{ padding: '12px', textAlign: 'left' }}>Username</th>
                                     <th style={{ padding: '12px', textAlign: 'left' }}>Created At</th>
+                                    <th style={{ padding: '12px', textAlign: 'left' }}>Plan</th>
                                     <th style={{ padding: '12px', textAlign: 'left' }}>Actions</th>
                                 </tr>
                             </thead>
