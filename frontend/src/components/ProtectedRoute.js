@@ -10,15 +10,32 @@ const ProtectedRoute = ({ children }) => {
     const checkAuth = async () => {
       try {
         const token = localStorage.getItem('token');
+        const userPlan = localStorage.getItem('userPlan');
+        
         if (!token) {
           setIsAuthorized(false);
           return;
         }
+
+        // If we have a stored paid plan, use that
+        if (userPlan && userPlan !== 'FREE') {
+          setIsAuthorized(true);
+          setIsLoading(false);
+          return;
+        }
+
+        // Otherwise check with the server
         const hasPaidPlan = await requirePaidPlan();
+        if (hasPaidPlan) {
+          localStorage.setItem('userPlan', 'PAID');
+        } else {
+          localStorage.setItem('userPlan', 'FREE');
+        }
         setIsAuthorized(hasPaidPlan);
       } catch (error) {
         console.error('Auth check failed:', error);
         setIsAuthorized(false);
+        localStorage.removeItem('userPlan');
       } finally {
         setIsLoading(false);
       }
