@@ -107,29 +107,29 @@ function Pricing() {
     setError(null);
 
     try {
-      const response = await fetch('https://flipvault-738b0b011a0f.herokuapp.com/create-checkout-session', {
+      const response = await fetch('https://flipvault.herokuapp.com/create-checkout-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
         },
-        credentials: 'include',
         body: JSON.stringify({ plan }),
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
+        console.error('Checkout error response:', errorData);
         throw new Error(errorData.detail || 'Failed to create checkout session');
       }
 
-      const { sessionId } = await response.json();
+      const data = await response.json();
+      console.log('Checkout session created:', data);
 
       if (!stripeInstance) {
         throw new Error('Stripe not initialized');
       }
 
       const { error } = await stripeInstance.redirectToCheckout({
-        sessionId,
+        sessionId: data.sessionId,
       });
 
       if (error) {
