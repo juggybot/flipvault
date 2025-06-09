@@ -29,7 +29,7 @@ app.add_middleware(
         "https://flipvault-afea58153afb.herokuapp.com",
         "https://flipvault.herokuapp.com"
     ],
-    allow_credentials=False,  # Changed to False since we're not using credentials
+    allow_credentials=True,  # Changed to True since we're using credentials
     allow_methods=["*"],
     allow_headers=["*"],
 )
