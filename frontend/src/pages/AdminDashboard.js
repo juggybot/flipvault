@@ -157,7 +157,12 @@ const AdminDashboard = () => {
 
             if (response.ok) {
                 const updatedUser = await response.json();
+                // Update users list
                 setUsers(users.map(user => user.id === userId ? updatedUser : user));
+                // Update local storage for the affected user
+                if (updatedUser.username === localStorage.getItem('username')) {
+                    localStorage.setItem('userPlan', newPlan !== 'Free' ? 'PAID' : 'FREE');
+                }
                 alert('User plan updated successfully');
             } else {
                 alert('Error updating user plan');

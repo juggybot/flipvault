@@ -161,35 +161,35 @@ export const updateUserPlan = (plan) => {
   localStorage.setItem('userPlan', plan);
 };
 
-export const clearUserPlan = () => {
-  localStorage.removeItem('userPlan');
+export const getUserPlan = () => {
+  return localStorage.getItem('userPlan') || 'FREE';
 };
 
-// Add plan requirement check
 export const requirePaidPlan = async () => {
   try {
+    // First check localStorage
+    const storedPlan = localStorage.getItem('userPlan');
+    if (storedPlan === 'PAID') {
+      return true;
+    }
+
     const response = await fetch('https://flipvault-afea58153afb.herokuapp.com/check-subscription', {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json',
       },
     });
-    
+
     if (!response.ok) {
       throw new Error('Failed to check subscription');
     }
-    
+
     const data = await response.json();
-    const hasPaidPlan = data.hasPaidPlan;
+    const hasPaidPlan = data.plan && data.plan !== 'Free';
     
-    // Store the plan status
-    const plan = data.plan;
-    if (['Pro Lite', 'Pro', 'Exclusive'].includes(plan)) {
-      localStorage.setItem('userPlan', plan);
-    } else {
-      localStorage.setItem('userPlan', 'FREE');
-      return false;
-    }
+    // Update localStorage based on the response
+    localStorage.setItem('userPlan', hasPaidPlan ? 'PAID' : 'FREE');
     
     return hasPaidPlan;
   } catch (error) {
