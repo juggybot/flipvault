@@ -108,7 +108,7 @@ function Pricing() {
 
     try {
       // Update to match your actual Heroku app URL
-      const response = await fetch('https://flipvault-afea58153afb.herokuapp.com//create-checkout-session', {
+      const response = await fetch('https://flipvault-afea58153afb.herokuapp.com/create-checkout-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
