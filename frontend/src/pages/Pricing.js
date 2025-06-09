@@ -84,18 +84,22 @@ function Pricing() {
   }, []);
 
   const initializeStripe = () => {
-    const stripePublicKey = process.env.REACT_APP_STRIPE_ENVIRONMENT === 'test'
-      ? process.env.REACT_APP_STRIPE_TEST_PUBLIC_KEY
-      : process.env.REACT_APP_STRIPE_PUBLIC_KEY;
+    const stripePublicKey = process.env.REACT_APP_STRIPE_PUBLIC_KEY;
 
     if (!stripePublicKey) {
+      console.error('Stripe public key not found:', process.env);
       setError('Stripe public key is not configured.');
       return;
     }
 
-    const stripe = window.Stripe(stripePublicKey);
-    setStripeInstance(stripe);
-    setStripeReady(true); // NEW LINE
+    try {
+      const stripe = window.Stripe(stripePublicKey);
+      setStripeInstance(stripe);
+      setStripeReady(true);
+    } catch (err) {
+      console.error('Stripe initialization error:', err);
+      setError('Failed to initialize Stripe');
+    }
   };
 
   const handleCheckout = async (plan) => {
@@ -103,8 +107,8 @@ function Pricing() {
     setError(null);
 
     try {
-      // Call backend to create checkout session
-      const response = await fetch('/create-checkout-session', {
+      // Update the API endpoint URL to match the backend
+      const response = await fetch('https://flipvault-738b0b011a0f.herokuapp.com/create-checkout-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -113,7 +117,8 @@ function Pricing() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create checkout session');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Failed to create checkout session');
       }
 
       const { sessionId } = await response.json();
