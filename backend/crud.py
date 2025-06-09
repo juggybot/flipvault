@@ -45,3 +45,20 @@ def create_user(db: Session, username: str, hashed_password: str, plan: str = "f
     db.refresh(db_user)
     return db_user
 
+def delete_user(db: Session, user_id: int):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if user:
+        db.delete(user)
+        db.commit()
+        return user
+    return None
+
+def update_user_plan(db: Session, user_id: int, plan: str):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if user:
+        user.plan = plan
+        db.commit()
+        db.refresh(user)
+        return user
+    return None
+
