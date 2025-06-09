@@ -103,37 +103,35 @@ function Pricing() {
     setError(null);
 
     try {
-      if (!stripeInstance) {
-        throw new Error('Stripe instance is not initialized.');
-      }
-
-      const priceIds = {
-        'pro-lite': process.env.REACT_APP_STRIPE_PRICE_PRO_LITE,
-        'pro': process.env.REACT_APP_STRIPE_PRICE_PRO,
-        'exclusive': process.env.REACT_APP_STRIPE_PRICE_EXCLUSIVE
-      };
-
-      if (!priceIds[plan]) {
-        throw new Error('Invalid plan selected');
-      }
-
-      const mode = plan === 'exclusive' ? 'payment' : 'subscription';
-
-      console.log('Using Stripe instance:', stripeInstance);
-      console.log('Selected priceId:', priceIds[plan]);
-      console.log('Mode:', mode);
-
-      const { error: checkoutError } = await stripeInstance.redirectToCheckout({
-        lineItems: [{ price: priceIds[plan], quantity: 1 }],
-        mode,
-        successUrl: window.location.origin + '/',
-        cancelUrl: window.location.origin + '/',
+      // Call backend to create checkout session
+      const response = await fetch('/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ plan }),
       });
 
-      if (checkoutError) throw checkoutError;
+      if (!response.ok) {
+        throw new Error('Failed to create checkout session');
+      }
+
+      const { sessionId } = await response.json();
+
+      if (!stripeInstance) {
+        throw new Error('Stripe not initialized');
+      }
+
+      const { error } = await stripeInstance.redirectToCheckout({
+        sessionId,
+      });
+
+      if (error) {
+        throw error;
+      }
     } catch (err) {
-      setError('Payment initialization failed. Please try again.');
       console.error('Checkout error:', err);
+      setError('Payment initialization failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -276,5 +274,5 @@ function Pricing() {
     </ThemeProvider>
   );
 }
-
+ 
 export default Pricing;

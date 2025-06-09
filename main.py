@@ -279,14 +279,12 @@ def update_database():
 try:
     stripe_env = os.environ.get("STRIPE_ENVIRONMENT", "production")
     if stripe_env == "test":
-        stripe.api_key = os.environ.get("STRIPE_TEST_SECRET_KEY", "")
-        stripe_public_key = os.environ.get("REACT_APP_STRIPE_TEST_PUBLIC_KEY", "")
+        stripe.api_key = os.environ.get("STRIPE_TEST_SECRET_KEY")
     else:
-        stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "")
-        stripe_public_key = os.environ.get("STRIPE_PUBLIC_KEY", "")
+        stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
     
     if not stripe.api_key:
-        print("WARNING: Stripe API key not set. Stripe functionality will be limited.")
+        raise ValueError("Stripe API key not set")
 except Exception as e:
     print(f"Error initializing Stripe: {e}")
 
@@ -298,33 +296,26 @@ async def create_checkout_session(request: StripeCheckoutSessionRequest, db: Ses
     if not stripe.api_key:
         raise HTTPException(status_code=500, detail="Stripe API key not configured")
     
-    # Use environment variables for price IDs
     price_ids = {
-        "pro-lite": os.environ.get("STRIPE_PRICE_PRO_LITE", "price_1RHh9iHB4FuKHL1pxkTQOfPd"),
-        "pro": os.environ.get("STRIPE_PRICE_PRO", "price_1RHhARHB4FuKHL1pUiWHACvC"),
-        "exclusive": os.environ.get("STRIPE_PRICE_EXCLUSIVE", "price_1RHhARHB4FuKHL1pJLJh1N1d"),
+        "pro-lite": os.environ.get("STRIPE_PRICE_PRO_LITE"),
+        "pro": os.environ.get("STRIPE_PRICE_PRO"),
+        "exclusive": os.environ.get("STRIPE_PRICE_EXCLUSIVE"),
     }
     
-    if request.plan not in price_ids:
-        raise HTTPException(status_code=400, detail="Invalid plan")
+    if request.plan not in price_ids or not price_ids[request.plan]:
+        raise HTTPException(status_code=400, detail="Invalid plan or price ID not configured")
 
-    # Determine proper success and cancel URLs based on environment
     base_url = os.environ.get("APP_BASE_URL", "https://flipvault.netlify.app")
     
     try:
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
-            line_items=[
-                {
-                    'price': price_ids[request.plan],
-                    'quantity': 1,
-                },
-            ],
+            line_items=[{'price': price_ids[request.plan], 'quantity': 1}],
             mode='subscription',
-            success_url=f"{base_url}/user-dashboard?success=true",
+            success_url=f"{base_url}/success?session_id={{CHECKOUT_SESSION_ID}}",
             cancel_url=f"{base_url}/pricing?canceled=true",
         )
-        return {"id": checkout_session.id}
+        return {"sessionId": checkout_session.id}
     except stripe.error.StripeError as e:
         print(f"Stripe error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
