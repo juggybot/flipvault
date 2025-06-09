@@ -171,33 +171,25 @@ export const updateUserPlan = async (userId, plan) => {
     }
 };
 
-export const getUserPlan = () => {
-  return localStorage.getItem('userPlan') || 'FREE';
-};
-
 export const requirePaidPlan = async () => {
-    try {
-        const response = await fetch('https://flipvault-afea58153afb.herokuapp.com/check-subscription', {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                'Content-Type': 'application/json',
-            },
-            credentials: 'include'
-        });
+  try {
+    const config = {
+      headers: { 
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
+      },
+      withCredentials: true
+    };
 
-        if (!response.ok) {
-            throw new Error('Failed to check subscription');
-        }
+    const response = await axiosInstance.get('/check-subscription', config);
+    const data = response.data;
+    const hasPaidPlan = data.plan && data.plan !== 'Free';
+    localStorage.setItem('userPlan', hasPaidPlan ? 'PAID' : 'FREE');
 
-        const data = await response.json();
-        const hasPaidPlan = data.plan && data.plan !== 'Free';
-        localStorage.setItem('userPlan', hasPaidPlan ? 'PAID' : 'FREE');
-        
-        return hasPaidPlan;
-    } catch (error) {
-        console.error('Error checking subscription:', error);
-        return false;
-    }
+    return hasPaidPlan;
+  } catch (error) {
+    console.error('Error checking subscription:', error);
+    return false;
+  }
 };
 

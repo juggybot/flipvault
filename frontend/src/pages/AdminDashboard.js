@@ -161,24 +161,22 @@ const AdminDashboard = () => {
 
             if (response.ok) {
                 const updatedUser = await response.json();
+                // Update users list
                 setUsers(users.map(user => user.id === userId ? updatedUser : user));
                 
-                // Store the updated plan in localStorage and update the server
-                await fetch('https://flipvault-afea58153afb.herokuapp.com/update-plan', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Basic ' + btoa('juggy:Idus1234@@')
-                    },
-                    body: JSON.stringify({ 
-                        userId: userId,
-                        plan: newPlan 
-                    })
-                });
+                // Get the user's username
+                const targetUser = users.find(user => user.id === userId);
+                if (targetUser) {
+                    // If this is the currently logged-in user, update their plan in localStorage
+                    const currentUsername = localStorage.getItem('username');
+                    if (currentUsername === targetUser.username) {
+                        localStorage.setItem('userPlan', newPlan !== 'Free' ? 'PAID' : 'FREE');
+                    }
+                }
                 
                 alert('User plan updated successfully');
             } else {
-                alert('Error updating user plan');
+                throw new Error('Failed to update plan');
             }
         } catch (error) {
             console.error('Error updating user plan:', error);
