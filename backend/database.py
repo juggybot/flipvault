@@ -98,6 +98,7 @@ def init_db():
                     default_user = User(
                         username=default_username,
                         hashed_password=hashed_password,
+                        plan="free"
                     )
                     db.add(default_user)
                     db.commit()

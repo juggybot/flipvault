@@ -38,8 +38,8 @@ def update_product(db: Session, product_id: int, product_data: dict):
 def get_user_by_username(db: Session, username: str):
     return db.query(models.User).filter(models.User.username == username).first()
 
-def create_user(db: Session, username: str, hashed_password: str):
-    db_user = models.User(username=username, hashed_password=hashed_password)
+def create_user(db: Session, username: str, hashed_password: str, plan: str = "free"):
+    db_user = models.User(username=username, hashed_password=hashed_password, plan=plan)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
