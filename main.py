@@ -353,6 +353,19 @@ def get_users(db: Session = Depends(get_db), credentials: HTTPBasicCredentials =
 class UpdateUserPlan(BaseModel):
     plan: str
 
+@app.put("/users/{user_id}/plan", response_model=UserResponse)
+def update_user_plan(
+    user_id: int,
+    plan_data: UpdateUserPlan,
+    db: Session = Depends(get_db),
+    credentials: HTTPBasicCredentials = Depends(security)
+):
+    verify_password(credentials)
+    user = crud.update_user_plan(db=db, user_id=user_id, plan=plan_data.plan)
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
+
 @app.delete("/users/{user_id}")
 def delete_user(user_id: int, db: Session = Depends(get_db), credentials: HTTPBasicCredentials = Depends(security)):
     verify_password(credentials)
@@ -360,20 +373,3 @@ def delete_user(user_id: int, db: Session = Depends(get_db), credentials: HTTPBa
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return {"message": "User deleted successfully"}
-
-@app.put("/users/{user_id}/plan")
-def update_user_plan(
-    user_id: int, 
-    plan_update: UpdateUserPlan, 
-    db: Session = Depends(get_db),
-    credentials: HTTPBasicCredentials = Depends(security)
-):
-    verify_password(credentials)
-    valid_plans = ["Free", "Pro", "Exclusive"]
-    if plan_update.plan not in valid_plans:
-        raise HTTPException(status_code=400, detail="Invalid plan type")
-    
-    user = crud.update_user_plan(db=db, user_id=user_id, plan=plan_update.plan)
-    if user is None:
-        raise HTTPException(status_code=404, detail="User not found")
-    return user
