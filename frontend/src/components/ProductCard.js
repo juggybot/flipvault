@@ -40,55 +40,66 @@ const ModernButton = styled(Button)({
 
 function ProductCard() {
     const { productId } = useParams();
-    console.log('useParams:', useParams());
-    const parsedProductId = productId && /^\d+$/.test(productId) ? parseInt(productId, 10) : NaN;
     const [product, setProduct] = useState(null);
     const [currency, setCurrency] = useState(localStorage.getItem('currency') || 'USD');
     const [username, setUsername] = useState('');
 
     useEffect(() => {
+        let isMounted = true;
         // Retrieve currency from local storage
         const storedCurrency = localStorage.getItem('currency');
-        if (storedCurrency) {
-            setCurrency(storedCurrency);
-        }
         const storedUsername = localStorage.getItem('username');
-        if (storedUsername) {
-            setUsername(storedUsername);
+        
+        if (isMounted) {
+            if (storedCurrency) setCurrency(storedCurrency);
+            if (storedUsername) setUsername(storedUsername);
         }
+
+        return () => {
+            isMounted = false;
+        };
     }, []);
 
     useEffect(() => {
-        if (isNaN(parsedProductId)) {
-            console.error('Product ID is not a valid integer:', productId);
-            return;  // Stop execution if ID is invalid
-        }
+        let isMounted = true;
+        
+        const fetchProduct = async () => {
+            if (isNaN(parsedProductId)) {
+                console.error('Product ID is not a valid integer:', productId);
+                return;
+            }
 
-        fetch(`https://flipvault-afea58153afb.herokuapp.com/products/${parsedProductId}`, {
-            method: 'GET',
-            credentials: 'include',
-            headers: {
-                'Authorization': 'Basic ' + btoa('juggy:Idus1234@@'),
-                'Content-Type': 'application/json'
-            },
-        })
-            .then(response => {
-                if (response.status === 405) {
-                    throw new Error('Method not allowed');
-                }
+            try {
+                const response = await fetch(`https://flipvault-afea58153afb.herokuapp.com/products/${parsedProductId}`, {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Authorization': 'Basic ' + btoa('juggy:Idus1234@@'),
+                        'Content-Type': 'application/json'
+                    },
+                });
+
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
-                return response.json();
-            })
-            .then(data => {
-                console.log('API response:', data); // Log the API response
-                setProduct({
-                    ...data,
-                    ...data.data, // Spread the `data` field into the product object
-                });
-            })
-            .catch(error => console.error('Fetch error:', error));
+
+                const data = await response.json();
+                if (isMounted) {
+                    setProduct({
+                        ...data,
+                        ...data.data,
+                    });
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+            }
+        };
+
+        fetchProduct();
+
+        return () => {
+            isMounted = false;
+        };
     }, [parsedProductId]);
 
     const drawerWidth = 240;

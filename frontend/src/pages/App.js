@@ -72,11 +72,17 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/settings" element={<Settings />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/productcard/:productId" element={<ProductCard />} />
+          <Route 
+            path="/productcard/:productId" 
+            element={
+              <ProtectedRoute>
+                <ProductCard />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
           <Route path="/register" element={<Register />} /> {/* Add register route */}
