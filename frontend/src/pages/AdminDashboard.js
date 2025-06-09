@@ -11,6 +11,10 @@ const AdminDashboard = () => {
     const [users, setUsers] = useState([]);
     const [isAuthenticated, setIsAuthenticated] = useState(true); // Changed to true
     const [currentTab, setCurrentTab] = useState(0);
+    const [credentials, setCredentials] = useState({
+        username: '',
+        password: ''
+    });
 
     useEffect(() => {
         fetchProducts();
@@ -126,6 +130,30 @@ const AdminDashboard = () => {
         }
     };
 
+    const handleUpdateUserPlan = async (userId, newPlan) => {
+        try {
+            const response = await fetch(`https://flipvault-afea58153afb.herokuapp.com/users/${userId}/plan`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Basic ' + btoa('juggy:Idus1234@@')
+                },
+                body: JSON.stringify({ plan: newPlan })
+            });
+
+            if (response.ok) {
+                const updatedUser = await response.json();
+                setUsers(users.map(user => user.id === userId ? updatedUser : user));
+                alert('User plan updated successfully');
+            } else {
+                alert('Error updating user plan');
+            }
+        } catch (error) {
+            console.error('Error updating user plan:', error);
+            alert('Error updating user plan');
+        }
+    };
+
     if (!isAuthenticated) {
         return (
             <Container maxWidth="sm">
@@ -210,7 +238,22 @@ const AdminDashboard = () => {
                                         <td style={{ padding: '12px' }}>{user.id}</td>
                                         <td style={{ padding: '12px' }}>{user.username}</td>
                                         <td style={{ padding: '12px' }}>{new Date(user.created_at).toLocaleString()}</td>
-                                        <td style={{ padding: '12px' }}>{user.plan}</td>
+                                        <td style={{ padding: '12px' }}>
+                                            <TextField
+                                                select
+                                                value={user.plan}
+                                                onChange={(e) => handleUpdateUserPlan(user.id, e.target.value)}
+                                                SelectProps={{
+                                                    native: true,
+                                                }}
+                                                variant="outlined"
+                                                size="small"
+                                            >
+                                                <option value="Free">Free</option>
+                                                <option value="Pro">Pro</option>
+                                                <option value="Exclusive">Exclusive</option>
+                                            </TextField>
+                                        </td>
                                         <td style={{ padding: '12px' }}>
                                             <Button 
                                                 size="small" 
