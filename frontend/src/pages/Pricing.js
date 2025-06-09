@@ -107,12 +107,13 @@ function Pricing() {
     setError(null);
 
     try {
-      // Update the API endpoint URL to match the backend
       const response = await fetch('https://flipvault-738b0b011a0f.herokuapp.com/create-checkout-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
         },
+        credentials: 'include',
         body: JSON.stringify({ plan }),
       });
 

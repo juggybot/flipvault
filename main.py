@@ -22,7 +22,7 @@ app = FastAPI()
 # Add your production domain to the allowed origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "https://flipvault.netlify.app"],
+    allow_origins=["http://localhost:3000", "https://flipvault.netlify.app", "https://flipvault-738b0b011a0f.herokuapp.com"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
