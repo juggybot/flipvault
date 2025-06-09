@@ -146,3 +146,22 @@ export const verifySubscription = async () => {
   }
 };
 
+export const checkUserPlan = async (username) => {
+  try {
+    const response = await axiosInstance.get(`/user/plan/${username}`);
+    return response.data.plan;
+  } catch (error) {
+    console.error('Error checking user plan:', error);
+    return 'free';
+  }
+};
+
+// Add plan requirement check
+export const requirePaidPlan = async () => {
+  const username = localStorage.getItem('username');
+  if (!username) return false;
+  
+  const plan = await checkUserPlan(username);
+  return plan !== 'free';
+};
+

@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Container, Typography, Paper, Box, Button, FormControl, InputLabel, Select, MenuItem, Grid, AppBar, Toolbar, CssBaseline, Drawer, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Dashboard as DashboardIcon, ShoppingCart as ShoppingCartIcon, Settings as SettingsIcon, ExitToApp as ExitToAppIcon, Calculate as CalculateIcon } from '@mui/icons-material';
-import { Link, Route, Routes } from 'react-router-dom';
+import { Link, Route, Routes, useNavigate } from 'react-router-dom';
 import FeeCalculatorPage from './FeeCalculator';
 import Products from './Products';
 import Logout from './Logout';
 import UserDashboard from './UserDashboard';
 import { styled } from '@mui/system';
+import { requirePaidPlan } from '../services/api';
 
 const theme = createTheme({
   palette: {
@@ -44,8 +45,18 @@ const ModernButton = styled(Button)({
 function Settings() {
   const [currency, setCurrency] = React.useState('USD');
   const [username, setUsername] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
+    const checkAccess = async () => {
+      const hasPaidPlan = await requirePaidPlan();
+      if (!hasPaidPlan) {
+        navigate('/pricing');
+      }
+    };
+    
+    checkAccess();
+
     // Retrieve username and currency from local storage or context
     const storedUsername = localStorage.getItem('username');
     if (storedUsername) {

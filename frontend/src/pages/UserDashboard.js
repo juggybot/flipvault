@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Container, Typography, Grid, Paper, Box, AppBar, Toolbar, IconButton, Menu, MenuItem, CssBaseline, Button, Avatar, Drawer, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Menu as MenuIcon, Dashboard as DashboardIcon, ShoppingCart as ShoppingCartIcon, Settings as SettingsIcon, LocalShipping as LocalShippingIcon, People as PeopleIcon, ExitToApp as ExitToAppIcon, Calculate as CalculateIcon } from '@mui/icons-material';
-import { Link, Route, Routes } from 'react-router-dom';
+import { Link, Route, Routes, useNavigate } from 'react-router-dom';
 import FeeCalculatorPage from './FeeCalculator'; // Import the new page
 import Products from './Products';
 import Settings from './Settings';
 import Logout from './Logout';
+import { requirePaidPlan } from '../services/api';
 
 const theme = createTheme({
   palette: {
@@ -31,6 +32,7 @@ function UserDashboard() {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [username, setUsername] = useState('');
   const [subscriptionDate, setSubscriptionDate] = useState(''); // Example date, replace with actual data
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Retrieve username from local storage or context
@@ -42,6 +44,18 @@ function UserDashboard() {
     const date = new Date();
     date.setFullYear(date.getFullYear() + 1); // Set to one year from now
     setSubscriptionDate(date.toLocaleDateString('en-AU', { year: 'numeric', month: '2-digit', day: '2-digit' }));
+  }, []);
+
+  useEffect(() => {
+    const checkAccess = async () => {
+      const hasPaidPlan = await requirePaidPlan();
+      if (!hasPaidPlan) {
+        navigate('/pricing');
+      }
+    };
+    
+    checkAccess();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const drawerWidth = 240;

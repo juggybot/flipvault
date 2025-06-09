@@ -373,3 +373,10 @@ def delete_user(user_id: int, db: Session = Depends(get_db), credentials: HTTPBa
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return {"message": "User deleted successfully"}
+
+@app.get("/user/plan/{username}")
+def get_user_plan(username: str, db: Session = Depends(get_db)):
+    user = crud.get_user_by_username(db, username)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"plan": user.plan or "free"}

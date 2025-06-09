@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Container, Typography, TextField, Select, MenuItem, Box, Button, CssBaseline, AppBar, Toolbar, Drawer, List, ListItem, ListItemIcon, ListItemText, Paper } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Dashboard as DashboardIcon, ShoppingCart as ShoppingCartIcon, Settings as SettingsIcon, ExitToApp as ExitToAppIcon, Calculate as CalculateIcon } from '@mui/icons-material';
-import { Link, Route, Routes } from 'react-router-dom';
+import { Link, Route, Routes, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Products from './Products';
 import Settings from './Settings';
 import Logout from './Logout';
 import UserDashboard from './UserDashboard';
 import { styled } from '@mui/system';
+import { requirePaidPlan } from '../services/api';
 
 const theme = createTheme({
   palette: {
@@ -49,14 +50,24 @@ function FeeCalculatorPage() {
   const [error, setError] = useState(null);
   const [selectedMarketplace, setSelectedMarketplace] = useState('');
   const [username, setUsername] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
+    const checkAccess = async () => {
+      const hasPaidPlan = await requirePaidPlan();
+      if (!hasPaidPlan) {
+        navigate('/pricing');
+      }
+    };
+    
+    checkAccess();
+
     // Retrieve username from local storage or context
     const storedUsername = localStorage.getItem('username');
     if (storedUsername) {
       setUsername(storedUsername);
     }
-  }, []);
+  }, [navigate]);
 
   const handleCalculateFee = async () => {
     try {

@@ -15,6 +15,7 @@ import Logout from './Logout';
 import UserDashboard from './UserDashboard';
 import ProductCard from '../components/ProductCard';
 import { styled } from '@mui/system';
+import { requirePaidPlan } from '../services/api';
 
 const theme = createTheme({
   palette: {
@@ -56,6 +57,15 @@ function Products() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const checkAccess = async () => {
+      const hasPaidPlan = await requirePaidPlan();
+      if (!hasPaidPlan) {
+        navigate('/pricing');
+      }
+    };
+
+    checkAccess();
+
     fetchProducts();
 
     // Retrieve username from local storage or context
