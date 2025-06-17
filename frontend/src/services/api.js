@@ -205,48 +205,69 @@ export const requirePaidPlan = async () => {
 // Add this new function for admin plan updates
 export const updateUserPlanAdmin = async (userId, newPlan) => {
     try {
-        // Validate plan before making the request
+        console.log('Updating plan:', { userId, newPlan }); // Debug log
+
         if (!validatePlan(newPlan)) {
-            throw new Error('Invalid plan type');
+            throw new Error(`Invalid plan type: ${newPlan}`);
         }
 
-        const response = await axiosInstance.put(`/users/${userId}/plan`, { 
-            plan: newPlan,
-            timestamp: new Date().toISOString() // Add timestamp for verification
-        });
+        if (!userId) {
+            throw new Error('No user ID provided');
+        }
 
-        if (response.data && response.data.success) {
-            const targetUsername = response.data.username;
-            const currentUsername = localStorage.getItem('username');
-            
-            // Only update localStorage if it's the current user
-            if (targetUsername === currentUsername) {
-                // Store complete plan data
-                const planData = {
-                    plan: newPlan,
-                    updatedAt: new Date().toISOString(),
-                    status: newPlan.toLowerCase() !== 'free' ? 'PAID' : 'FREE'
-                };
-                
-                localStorage.setItem('userPlan', newPlan);
-                localStorage.setItem('planStatus', planData.status);
-                localStorage.setItem('planData', JSON.stringify(planData));
-            }
-            
-            return {
-                success: true,
-                data: response.data,
-                plan: newPlan
-            };
+        const payload = { 
+            plan: newPlan,
+            timestamp: new Date().toISOString()
+        };
+        
+        console.log('Making request with payload:', payload); // Debug log
+
+        const response = await axiosInstance.put(`/users/${userId}/plan`, payload);
+        console.log('Server response:', response.data); // Debug log
+
+        if (!response.data) {
+            throw new Error('No response data received');
+        }
+
+        const targetUsername = response.data.username;
+        const currentUsername = localStorage.getItem('username');
+        
+        // Store complete plan data
+        const planData = {
+            plan: newPlan,
+            updatedAt: new Date().toISOString(),
+            status: newPlan.toLowerCase() !== 'free' ? 'PAID' : 'FREE',
+            userId: userId
+        };
+        
+        console.log('Storing plan data:', planData); // Debug log
+        
+        if (targetUsername === currentUsername) {
+            localStorage.setItem('userPlan', newPlan);
+            localStorage.setItem('planStatus', planData.status);
+            localStorage.setItem('planData', JSON.stringify(planData));
         }
         
-        throw new Error('Update failed: ' + (response.data?.message || 'No response data'));
+        return {
+            success: true,
+            data: response.data,
+            plan: newPlan,
+            planData
+        };
     } catch (error) {
-        console.error('Error updating plan:', error);
+        console.error('Plan update failed:', {
+            error: error.message,
+            response: error.response?.data,
+            status: error.response?.status,
+            userId,
+            newPlan
+        });
+        
         return { 
             success: false, 
             error: error.message || 'Error updating plan',
-            code: error.response?.status
+            code: error.response?.status,
+            details: error.response?.data
         };
     }
 };

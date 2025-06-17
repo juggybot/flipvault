@@ -150,18 +150,30 @@ const AdminDashboard = () => {
 
     const handleUpdateUserPlan = async (userId, newPlan) => {
         try {
+            console.log('Initiating plan update:', { userId, newPlan }); // Debug log
+            
             const result = await updateUserPlanAdmin(userId, newPlan);
+            console.log('Update result:', result); // Debug log
+
             if (result.success) {
+                // Update local user state with new plan data
                 setUsers(users.map(user => 
-                    user.id === userId ? result.data : user
+                    user.id === userId 
+                        ? { ...user, plan: newPlan, updated_at: new Date().toISOString() }
+                        : user
                 ));
                 alert('User plan updated successfully');
             } else {
                 throw new Error(result.error || 'Failed to update plan');
             }
         } catch (error) {
-            console.error('Error updating user plan:', error);
-            alert('Error updating user plan');
+            console.error('Error updating user plan:', {
+                error: error.message,
+                userId,
+                newPlan,
+                stack: error.stack
+            });
+            alert(`Error updating user plan: ${error.message}`);
         }
     };
 
