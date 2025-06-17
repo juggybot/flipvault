@@ -65,6 +65,7 @@ function Login() {
     
     try {
       const result = await login(email, password);
+      console.log('[login result]', result);
       if (result.success) {
         localStorage.setItem('username', email);
         
