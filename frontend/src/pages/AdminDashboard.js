@@ -50,8 +50,20 @@ const AdminDashboard = () => {
             });
             if (response.ok) {
                 const data = await response.json();
-                console.log('Fetched users:', data); // Debug log
-                setUsers(Array.isArray(data) ? data : []);
+                console.log('Fetched users:', data);
+                
+                // Transform user data to ensure plan info is preserved
+                const processedUsers = Array.isArray(data) ? data.map(user => ({
+                    ...user,
+                    plan: user.plan || localStorage.getItem(`user_${user.id}_plan`) || 'Free'
+                })) : [];
+                
+                // Store plans in localStorage for persistence
+                processedUsers.forEach(user => {
+                    localStorage.setItem(`user_${user.id}_plan`, user.plan);
+                });
+                
+                setUsers(processedUsers);
             } else {
                 console.error('Failed to fetch users:', response.status);
             }
@@ -150,16 +162,22 @@ const AdminDashboard = () => {
 
     const handleUpdateUserPlan = async (userId, newPlan) => {
         try {
-            console.log('Initiating plan update:', { userId, newPlan }); // Debug log
+            console.log('Initiating plan update:', { userId, newPlan });
             
             const result = await updateUserPlanAdmin(userId, newPlan);
-            console.log('Update result:', result); // Debug log
+            console.log('Update result:', result);
 
             if (result.success) {
-                // Update local user state with new plan data
+                // Update both local state and localStorage
+                localStorage.setItem(`user_${userId}_plan`, newPlan);
+                
                 setUsers(users.map(user => 
                     user.id === userId 
-                        ? { ...user, plan: newPlan, updated_at: new Date().toISOString() }
+                        ? { 
+                            ...user, 
+                            plan: newPlan,
+                            updated_at: new Date().toISOString()
+                        }
                         : user
                 ));
                 alert('User plan updated successfully');
@@ -167,12 +185,7 @@ const AdminDashboard = () => {
                 throw new Error(result.error || 'Failed to update plan');
             }
         } catch (error) {
-            console.error('Error updating user plan:', {
-                error: error.message,
-                userId,
-                newPlan,
-                stack: error.stack
-            });
+            console.error('Error updating user plan:', error);
             alert(`Error updating user plan: ${error.message}`);
         }
     };

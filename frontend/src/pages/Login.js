@@ -55,23 +55,32 @@ const ModernButton = styled(Button)({
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const [anchorEl, setAnchorEl] = React.useState(null);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(''); // Clear previous errors
+    
     try {
       const result = await login(email, password);
       if (result.success) {
-        // Store username in local storage
-        localStorage.setItem('username', email); // or result.username if the backend returns it
+        localStorage.setItem('username', email);
+        
+        // Check if user has a free plan
+        if (result.plan === 'Free') {
+          setError('You are on a free plan. Please upgrade to access the dashboard.');
+          return;
+        }
+        
         navigate('/user-dashboard');
       } else {
-        alert('Login failed');
+        setError('Invalid username or password');
       }
     } catch (error) {
       console.error('Login error:', error);
-      alert('Login failed');
+      setError('Login failed. Please try again.');
     }
   };
   
@@ -125,6 +134,35 @@ function Login() {
         <Typography variant="h6" gutterBottom style={{ textAlign: 'center', color: '#e0e0e0' }}>
           LOGIN TO YOUR ACCOUNT
         </Typography>
+        {error && (
+          <Typography 
+            color="error" 
+            sx={{ 
+              mt: 2, 
+              mb: 2, 
+              textAlign: 'center',
+              padding: '10px',
+              backgroundColor: 'rgba(255, 0, 0, 0.1)',
+              borderRadius: '4px'
+            }}
+          >
+            {error}
+            {error.includes('free plan') && (
+              <Button
+                component={Link}
+                to="/pricing"
+                color="primary"
+                sx={{ 
+                  display: 'block',
+                  margin: '10px auto 0',
+                  textTransform: 'none'
+                }}
+              >
+                Upgrade Now
+              </Button>
+            )}
+          </Typography>
+        )}
         <form onSubmit={handleSubmit}>
           <TextField
             label="Username or Email"

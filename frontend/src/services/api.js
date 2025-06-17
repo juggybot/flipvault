@@ -205,7 +205,7 @@ export const requirePaidPlan = async () => {
 // Add this new function for admin plan updates
 export const updateUserPlanAdmin = async (userId, newPlan) => {
     try {
-        console.log('Updating plan:', { userId, newPlan }); // Debug log
+        console.log('Updating plan:', { userId, newPlan });
 
         if (!validatePlan(newPlan)) {
             throw new Error(`Invalid plan type: ${newPlan}`);
@@ -219,50 +219,42 @@ export const updateUserPlanAdmin = async (userId, newPlan) => {
             plan: newPlan,
             timestamp: new Date().toISOString()
         };
-        
-        console.log('Making request with payload:', payload); // Debug log
 
         const response = await axiosInstance.put(`/users/${userId}/plan`, payload);
-        console.log('Server response:', response.data); // Debug log
+        console.log('Server response:', response.data);
 
         if (!response.data) {
             throw new Error('No response data received');
         }
 
-        const targetUsername = response.data.username;
-        const currentUsername = localStorage.getItem('username');
+        // Store plan data in multiple locations for redundancy
+        localStorage.setItem(`user_${userId}_plan`, newPlan);
         
-        // Store complete plan data
         const planData = {
             plan: newPlan,
             updatedAt: new Date().toISOString(),
             status: newPlan.toLowerCase() !== 'free' ? 'PAID' : 'FREE',
             userId: userId
         };
-        
-        console.log('Storing plan data:', planData); // Debug log
+
+        // Update current user plan if applicable
+        const targetUsername = response.data.username;
+        const currentUsername = localStorage.getItem('username');
         
         if (targetUsername === currentUsername) {
             localStorage.setItem('userPlan', newPlan);
             localStorage.setItem('planStatus', planData.status);
             localStorage.setItem('planData', JSON.stringify(planData));
         }
-        
+
         return {
             success: true,
-            data: response.data,
+            data: { ...response.data, plan: newPlan }, // Include plan in response
             plan: newPlan,
             planData
         };
     } catch (error) {
-        console.error('Plan update failed:', {
-            error: error.message,
-            response: error.response?.data,
-            status: error.response?.status,
-            userId,
-            newPlan
-        });
-        
+        console.error('Plan update failed:', error);
         return { 
             success: false, 
             error: error.message || 'Error updating plan',
