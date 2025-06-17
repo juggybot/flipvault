@@ -186,7 +186,6 @@ export const updateUserPlan = async (userId, plan) => {
 
 export const requirePaidPlan = async () => {
     try {
-        const existingPlan = localStorage.getItem('userPlan');
         const config = {
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -198,25 +197,21 @@ export const requirePaidPlan = async () => {
         const response = await axiosInstance.get('/check-subscription', config);
         const data = response.data;
         
-        // Only update localStorage if the server returns valid plan data
         if (data && data.plan) {
-            const hasPaidPlan = data.plan.toLowerCase() !== 'free';
-            const planStatus = hasPaidPlan ? 'PAID' : 'FREE';
-            
-            // Only update if different from current plan
-            if (existingPlan !== planStatus) {
-                localStorage.setItem('userPlan', planStatus);
-            }
-            
-            return hasPaidPlan;
+            // Store both the full plan name and the PAID/FREE status
+            localStorage.setItem('userPlan', data.plan);
+            localStorage.setItem('planStatus', data.plan.toLowerCase() !== 'free' ? 'PAID' : 'FREE');
+            return data.plan.toLowerCase() !== 'free';
         }
         
-        // If no valid data from server, use existing plan
-        return existingPlan === 'PAID';
+        // Fallback to checking stored plan
+        const storedPlan = localStorage.getItem('userPlan');
+        return storedPlan ? storedPlan.toLowerCase() !== 'free' : false;
     } catch (error) {
         console.error('Error checking subscription:', error);
-        // On error, maintain existing plan status
-        return localStorage.getItem('userPlan') === 'PAID';
+        // Fallback to stored plan on error
+        const storedPlan = localStorage.getItem('userPlan');
+        return storedPlan ? storedPlan.toLowerCase() !== 'free' : false;
     }
 };
 

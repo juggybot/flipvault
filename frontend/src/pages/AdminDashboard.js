@@ -161,22 +161,22 @@ const AdminDashboard = () => {
 
             if (response.ok) {
                 const updatedUser = await response.json();
-                // Update users list
+                // Update users list first
                 setUsers(users.map(user => user.id === userId ? updatedUser : user));
                 
                 // Get the user's username
                 const targetUser = users.find(user => user.id === userId);
                 if (targetUser) {
-                    // If this is the currently logged-in user, update their plan in localStorage
-                    const currentUsername = localStorage.getItem('username');
-                    if (currentUsername === targetUser.username) {
-                        localStorage.setItem('userPlan', newPlan !== 'Free' ? 'PAID' : 'FREE');
-                    }
+                    // Store plan status exactly as received from server
+                    localStorage.setItem('userPlan', newPlan);
+                    // Also store a PAID/FREE flag for legacy compatibility
+                    localStorage.setItem('planStatus', newPlan.toLowerCase() !== 'free' ? 'PAID' : 'FREE');
                 }
                 
                 alert('User plan updated successfully');
             } else {
-                throw new Error('Failed to update plan');
+                const errorData = await response.json();
+                throw new Error(errorData.detail || 'Failed to update plan');
             }
         } catch (error) {
             console.error('Error updating user plan:', error);
