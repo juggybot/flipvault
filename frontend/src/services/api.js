@@ -11,10 +11,22 @@ const axiosInstance = axios.create({
   withCredentials: true
 });
 
-// Function for handling errors
+// Enhanced error handling
 const handleError = (error, customMessage = 'Request failed') => {
-  console.error(customMessage, error.response?.data || error.message);
-  return { success: false, error: error.response?.data || error.message };
+  const errorMessage = error.response?.data?.message || error.message;
+  const errorCode = error.response?.status;
+  
+  console.error(`${customMessage}:`, {
+    message: errorMessage,
+    code: errorCode,
+    details: error.response?.data
+  });
+
+  return { 
+    success: false, 
+    error: errorMessage,
+    code: errorCode 
+  };
 };
 
 // Authenticated Login
