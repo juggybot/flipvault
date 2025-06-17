@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Container, Typography, Box, Tab, Tabs, TextField } from '@mui/material';
-import { createProduct, deleteProduct, scrapeProducts, scrapeProduct } from '../services/api';
+import { createProduct, deleteProduct, scrapeProducts, scrapeProduct, updateUserPlanAdmin } from '../services/api';
 import ProductForm from '../components/ProductForm';
 import ProductList from '../components/ProductList';
 
@@ -150,33 +150,14 @@ const AdminDashboard = () => {
 
     const handleUpdateUserPlan = async (userId, newPlan) => {
         try {
-            const response = await fetch(`https://flipvault-afea58153afb.herokuapp.com/users/${userId}/plan`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Basic ' + btoa('juggy:Idus1234@@')
-                },
-                body: JSON.stringify({ plan: newPlan })
-            });
-
-            if (response.ok) {
-                const updatedUser = await response.json();
-                // Update users list first
-                setUsers(users.map(user => user.id === userId ? updatedUser : user));
-                
-                // Get the user's username
-                const targetUser = users.find(user => user.id === userId);
-                if (targetUser) {
-                    // Store plan status exactly as received from server
-                    localStorage.setItem('userPlan', newPlan);
-                    // Also store a PAID/FREE flag for legacy compatibility
-                    localStorage.setItem('planStatus', newPlan.toLowerCase() !== 'free' ? 'PAID' : 'FREE');
-                }
-                
+            const result = await updateUserPlanAdmin(userId, newPlan);
+            if (result.success) {
+                setUsers(users.map(user => 
+                    user.id === userId ? result.data : user
+                ));
                 alert('User plan updated successfully');
             } else {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Failed to update plan');
+                throw new Error(result.error || 'Failed to update plan');
             }
         } catch (error) {
             console.error('Error updating user plan:', error);

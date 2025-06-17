@@ -33,7 +33,18 @@ const handleError = (error, customMessage = 'Request failed') => {
 export const login = async (username, password) => {
   try {
     const response = await axiosInstance.post('/login', { username, password });
-    return { success: response.data.success };
+    if (response.data.success) {
+      // Store user data immediately after successful login
+      if (response.data.plan) {
+        localStorage.setItem('userPlan', response.data.plan);
+        localStorage.setItem('planStatus', response.data.plan.toLowerCase() !== 'free' ? 'PAID' : 'FREE');
+      }
+      localStorage.setItem('username', username);
+    }
+    return { 
+      success: response.data.success,
+      plan: response.data.plan || 'Free'
+    };
   } catch (error) {
     return handleError(error, 'Login error');
   }
@@ -127,91 +138,115 @@ export const scrapeProduct = async (productId) => {
   }
 };
 
-// Add token refresh interceptor
+// Simplified token refresh without redirect
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
+    const originalRequest = error.config;
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
       try {
-        const refreshResult = await axiosInstance.post('/refresh-token');
-        if (refreshResult.data?.token) {
-          localStorage.setItem('token', refreshResult.data.token);
-          error.config.headers['Authorization'] = `Bearer ${refreshResult.data.token}`;
-          return axiosInstance(error.config);
-        }
+        // Instead of redirecting, return error for handling
+        return Promise.reject(new Error('Session expired'));
       } catch (refreshError) {
-        localStorage.removeItem('token');
-        window.location.href = '/login';
+        return Promise.reject(refreshError);
       }
     }
     return Promise.reject(error);
   }
 );
 
-// Add subscription verification to API calls
-export const verifySubscription = async () => {
-  try {
-    const response = await axiosInstance.get('/verify-subscription');
-    return response.data.isActive;
-  } catch (error) {
-    return handleError(error, 'Subscription verification failed');
-  }
-};
+// Add this helper function at the top with other constants
+const VALID_PLANS = ['Free', 'Pro Lite', 'Pro', 'Exclusive'];
+const validatePlan = (plan) => VALID_PLANS.includes(plan);
 
-export const checkUserPlan = async (username) => {
-  try {
-    const response = await axiosInstance.get(`/user/plan/${username}`);
-    return response.data.plan;
-  } catch (error) {
-    console.error('Error checking user plan:', error);
-    return 'free';
-  }
-};
-
-// Update these plan management functions
-export const updateUserPlan = async (userId, plan) => {
-    try {
-        const response = await axiosInstance.put(`/users/${userId}/plan`, { plan });
-        if (response.data && response.data.success) {
-            const planStatus = plan.toLowerCase() !== 'free' ? 'PAID' : 'FREE';
-            localStorage.setItem('userPlan', planStatus);
-            return true;
-        }
-        return false;
-    } catch (error) {
-        console.error('Error updating plan:', error);
-        return false;
-    }
-};
-
+// Simplified plan checking
 export const requirePaidPlan = async () => {
     try {
-        const config = {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                'Content-Type': 'application/json'
-            },
-            withCredentials: true
-        };
+        const planData = localStorage.getItem('planData');
+        if (planData) {
+            const data = JSON.parse(planData);
+            // Check if plan data is fresh (less than 1 hour old)
+            const isFresh = new Date(data.updatedAt) > new Date(Date.now() - 3600000);
+            
+            if (isFresh && validatePlan(data.plan)) {
+                return data.status === 'PAID';
+            }
+        }
 
-        const response = await axiosInstance.get('/check-subscription', config);
-        const data = response.data;
-        
-        if (data && data.plan) {
-            // Store both the full plan name and the PAID/FREE status
-            localStorage.setItem('userPlan', data.plan);
-            localStorage.setItem('planStatus', data.plan.toLowerCase() !== 'free' ? 'PAID' : 'FREE');
-            return data.plan.toLowerCase() !== 'free';
+        // If no valid cached data, check with server
+        const username = localStorage.getItem('username');
+        if (username) {
+            const response = await axiosInstance.get(`/user/plan/${username}`);
+            if (response.data && response.data.plan) {
+                const newPlanData = {
+                    plan: response.data.plan,
+                    updatedAt: new Date().toISOString(),
+                    status: response.data.plan.toLowerCase() !== 'free' ? 'PAID' : 'FREE'
+                };
+                
+                localStorage.setItem('userPlan', response.data.plan);
+                localStorage.setItem('planStatus', newPlanData.status);
+                localStorage.setItem('planData', JSON.stringify(newPlanData));
+                
+                return newPlanData.status === 'PAID';
+            }
         }
         
-        // Fallback to checking stored plan
-        const storedPlan = localStorage.getItem('userPlan');
-        return storedPlan ? storedPlan.toLowerCase() !== 'free' : false;
+        return false;
     } catch (error) {
-        console.error('Error checking subscription:', error);
+        console.error('Error checking plan:', error);
         // Fallback to stored plan on error
-        const storedPlan = localStorage.getItem('userPlan');
-        return storedPlan ? storedPlan.toLowerCase() !== 'free' : false;
+        const planData = localStorage.getItem('planData');
+        return planData ? JSON.parse(planData).status === 'PAID' : false;
     }
 };
 
+// Add this new function for admin plan updates
+export const updateUserPlanAdmin = async (userId, newPlan) => {
+    try {
+        // Validate plan before making the request
+        if (!validatePlan(newPlan)) {
+            throw new Error('Invalid plan type');
+        }
+
+        const response = await axiosInstance.put(`/users/${userId}/plan`, { 
+            plan: newPlan,
+            timestamp: new Date().toISOString() // Add timestamp for verification
+        });
+
+        if (response.data && response.data.success) {
+            const targetUsername = response.data.username;
+            const currentUsername = localStorage.getItem('username');
+            
+            // Only update localStorage if it's the current user
+            if (targetUsername === currentUsername) {
+                // Store complete plan data
+                const planData = {
+                    plan: newPlan,
+                    updatedAt: new Date().toISOString(),
+                    status: newPlan.toLowerCase() !== 'free' ? 'PAID' : 'FREE'
+                };
+                
+                localStorage.setItem('userPlan', newPlan);
+                localStorage.setItem('planStatus', planData.status);
+                localStorage.setItem('planData', JSON.stringify(planData));
+            }
+            
+            return {
+                success: true,
+                data: response.data,
+                plan: newPlan
+            };
+        }
+        
+        throw new Error('Update failed: ' + (response.data?.message || 'No response data'));
+    } catch (error) {
+        console.error('Error updating plan:', error);
+        return { 
+            success: false, 
+            error: error.message || 'Error updating plan',
+            code: error.response?.status
+        };
+    }
+};
