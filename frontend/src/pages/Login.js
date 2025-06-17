@@ -69,7 +69,7 @@ function Login() {
         localStorage.setItem('username', email);
         
         // Check if user has a free plan
-        if (result.plan === 'Free') {
+        if (result.plan && result.plan.trim().toLowerCase() === 'free') {
           setError('You are on a free plan. Please upgrade to access the dashboard.');
           return;
         }
