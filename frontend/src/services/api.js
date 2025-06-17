@@ -168,12 +168,13 @@ export const checkUserPlan = async (username) => {
   }
 };
 
-// Add plan management functions
+// Update these plan management functions
 export const updateUserPlan = async (userId, plan) => {
     try {
         const response = await axiosInstance.put(`/users/${userId}/plan`, { plan });
-        if (response.ok) {
-            localStorage.setItem('userPlan', plan !== 'Free' ? 'PAID' : 'FREE');
+        if (response.data && response.data.success) {
+            const planStatus = plan.toLowerCase() !== 'free' ? 'PAID' : 'FREE';
+            localStorage.setItem('userPlan', planStatus);
             return true;
         }
         return false;
@@ -184,24 +185,38 @@ export const updateUserPlan = async (userId, plan) => {
 };
 
 export const requirePaidPlan = async () => {
-  try {
-    const config = {
-      headers: { 
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json'
-      },
-      withCredentials: true
-    };
+    try {
+        const existingPlan = localStorage.getItem('userPlan');
+        const config = {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                'Content-Type': 'application/json'
+            },
+            withCredentials: true
+        };
 
-    const response = await axiosInstance.get('/check-subscription', config);
-    const data = response.data;
-    const hasPaidPlan = data.plan && data.plan !== 'Free';
-    localStorage.setItem('userPlan', hasPaidPlan ? 'PAID' : 'FREE');
-
-    return hasPaidPlan;
-  } catch (error) {
-    console.error('Error checking subscription:', error);
-    return false;
-  }
+        const response = await axiosInstance.get('/check-subscription', config);
+        const data = response.data;
+        
+        // Only update localStorage if the server returns valid plan data
+        if (data && data.plan) {
+            const hasPaidPlan = data.plan.toLowerCase() !== 'free';
+            const planStatus = hasPaidPlan ? 'PAID' : 'FREE';
+            
+            // Only update if different from current plan
+            if (existingPlan !== planStatus) {
+                localStorage.setItem('userPlan', planStatus);
+            }
+            
+            return hasPaidPlan;
+        }
+        
+        // If no valid data from server, use existing plan
+        return existingPlan === 'PAID';
+    } catch (error) {
+        console.error('Error checking subscription:', error);
+        // On error, maintain existing plan status
+        return localStorage.getItem('userPlan') === 'PAID';
+    }
 };
 
