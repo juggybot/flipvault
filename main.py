@@ -167,7 +167,8 @@ def login(login_request: LoginRequest, db: Session = Depends(get_db)):
     if not pwd_context.verify(login_request.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    return {"success": True, "message": "Login successful"}
+    # Return the user's plan in the response
+    return {"success": True, "message": "Login successful", "plan": user.plan or "free"}
 
 @app.post("/admin-login")
 def admin_login(login_request: LoginRequest):
