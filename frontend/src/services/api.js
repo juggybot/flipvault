@@ -157,8 +157,11 @@ axiosInstance.interceptors.response.use(
 );
 
 // Add this helper function at the top with other constants
-const VALID_PLANS = ['Free', 'Pro Lite', 'Pro', 'Exclusive'];
-const validatePlan = (plan) => VALID_PLANS.includes(plan);
+const VALID_PLANS = ['free', 'pro lite', 'pro', 'exclusive'];
+const validatePlan = (plan) => {
+    if (!plan || typeof plan !== 'string') return false;
+    return VALID_PLANS.includes(plan.trim().toLowerCase());
+};
 
 // Simplified plan checking
 export const requirePaidPlan = async () => {
@@ -168,9 +171,9 @@ export const requirePaidPlan = async () => {
             const data = JSON.parse(planData);
             // Check if plan data is fresh (less than 1 hour old)
             const isFresh = new Date(data.updatedAt) > new Date(Date.now() - 3600000);
-            
-            if (isFresh && validatePlan(data.plan)) {
-                return data.status === 'PAID';
+            const planName = data.plan ? data.plan.trim().toLowerCase() : '';
+            if (isFresh && validatePlan(planName)) {
+                return planName !== 'free';
             }
         }
 
@@ -179,26 +182,29 @@ export const requirePaidPlan = async () => {
         if (username) {
             const response = await axiosInstance.get(`/user/plan/${username}`);
             if (response.data && response.data.plan) {
+                const planName = response.data.plan.trim().toLowerCase();
                 const newPlanData = {
                     plan: response.data.plan,
                     updatedAt: new Date().toISOString(),
-                    status: response.data.plan.toLowerCase() !== 'free' ? 'PAID' : 'FREE'
+                    status: planName !== 'free' ? 'PAID' : 'FREE'
                 };
-                
                 localStorage.setItem('userPlan', response.data.plan);
                 localStorage.setItem('planStatus', newPlanData.status);
                 localStorage.setItem('planData', JSON.stringify(newPlanData));
-                
-                return newPlanData.status === 'PAID';
+                return planName !== 'free';
             }
         }
-        
         return false;
     } catch (error) {
         console.error('Error checking plan:', error);
         // Fallback to stored plan on error
         const planData = localStorage.getItem('planData');
-        return planData ? JSON.parse(planData).status === 'PAID' : false;
+        if (planData) {
+            const data = JSON.parse(planData);
+            const planName = data.plan ? data.plan.trim().toLowerCase() : '';
+            return planName !== 'free';
+        }
+        return false;
     }
 };
 
