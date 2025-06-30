@@ -19,9 +19,17 @@ const ProtectedRoute = ({ children }) => {
 
         // If we have a stored paid plan, use that
         if (userPlan && userPlan !== 'FREE') {
-          setIsAuthorized(true);
-          setIsLoading(false);
-          return;
+          // Validate token format (simple base64 check)
+          const token = localStorage.getItem('token');
+          if (token && /^[A-Za-z0-9+/=]+$/.test(token)) {
+            setIsAuthorized(true);
+            setIsLoading(false);
+            return;
+          } else {
+            setIsAuthorized(false);
+            setIsLoading(false);
+            return;
+          }
         }
 
         // Otherwise check with the server

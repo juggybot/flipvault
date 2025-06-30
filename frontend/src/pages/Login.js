@@ -68,13 +68,14 @@ function Login() {
       console.log('[login result]', result);
       if (result.success) {
         localStorage.setItem('username', email);
-        
+        // Generate a simple token (base64 of username:timestamp)
+        const token = btoa(`${email}:${Date.now()}`);
+        localStorage.setItem('token', token);
         // Check if user has a free plan
         if (result.plan && result.plan.trim().toLowerCase() === 'free') {
           setError('You are on a free plan. Please upgrade to access the dashboard.');
           return;
         }
-        
         navigate('/user-dashboard');
       } else {
         setError('Invalid username or password');
