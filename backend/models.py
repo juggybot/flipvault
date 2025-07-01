@@ -26,3 +26,5 @@ class User(Base):
     hashed_password = Column(String)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     plan = Column(String, default="free")  # Possible values: "free", "pro-lite", "pro", "exclusive"
+    subscription_start = Column(DateTime, nullable=True)
+    subscription_end = Column(DateTime, nullable=True)

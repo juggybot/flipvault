@@ -113,6 +113,37 @@ def init_db():
         else:
             print("Products table not found, but will be created on first application run")
             
+        # Check if the users table exists and add subscription columns if needed
+        if "users" in tables:
+            user_columns = [col['name'] for col in inspector.get_columns('users')]
+            print(f"Columns in 'users' table: {user_columns}")
+
+            # Add subscription_start column if it doesn't exist
+            if 'subscription_start' not in user_columns:
+                try:
+                    with engine.connect() as conn:
+                        if DATABASE_URL.startswith('sqlite'):
+                            conn.execute("ALTER TABLE users ADD COLUMN subscription_start DATETIME")
+                        else:  # PostgreSQL
+                            conn.execute("ALTER TABLE users ADD COLUMN subscription_start TIMESTAMP")
+                        print("Added 'subscription_start' column to 'users' table")
+                except Exception as e:
+                    print(f"Error adding subscription_start column: {e}")
+
+            # Add subscription_end column if it doesn't exist
+            if 'subscription_end' not in user_columns:
+                try:
+                    with engine.connect() as conn:
+                        if DATABASE_URL.startswith('sqlite'):
+                            conn.execute("ALTER TABLE users ADD COLUMN subscription_end DATETIME")
+                        else:  # PostgreSQL
+                            conn.execute("ALTER TABLE users ADD COLUMN subscription_end TIMESTAMP")
+                        print("Added 'subscription_end' column to 'users' table")
+                except Exception as e:
+                    print(f"Error adding subscription_end column: {e}")
+        else:
+            print("Users table not found, but will be created on first application run")
+            
         print("Database initialization complete.")
         return True
     except Exception as e:
