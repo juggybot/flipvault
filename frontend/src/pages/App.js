@@ -7,6 +7,7 @@ import UserDashboard from './UserDashboard';
 import LandingPage from './LandingPage';
 import Pricing from './Pricing';
 import Login from './Login';
+import Logout from './Logout';
 import FeeCalculatorPage from './FeeCalculator';
 import ProductCard from '../components/ProductCard';
 import AdminDashboard from './AdminDashboard';
@@ -76,6 +77,7 @@ function App() {
             />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/logout" element={<Logout />} />
             <Route path="/register" element={<Register />} />
             <Route 
               path="/productcard/:productId" 
