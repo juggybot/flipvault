@@ -25,6 +25,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",
         "https://flipvault.netlify.app",
+        "https://www.flipvault.vip",
         "https://flipvault-738b0b011a0f.herokuapp.com",
         "https://flipvault-afea58153afb.herokuapp.com",
         "https://flipvault.herokuapp.com"
