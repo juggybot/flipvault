@@ -299,7 +299,7 @@ class StripeCheckoutSessionRequest(BaseModel):
     plan: str
 
 @app.post("/create-checkout-session")
-async def create_checkout_session(request: StripeCheckoutSessionRequest, db: Session = Depends(get_db)):
+async def create_checkout_session(request: StripeCheckoutSessionRequest, db: Session = Depends(get_db), current_request: Request = None):
     if not stripe.api_key:
         raise HTTPException(status_code=500, detail="Stripe API key not configured")
     
@@ -313,7 +313,22 @@ async def create_checkout_session(request: StripeCheckoutSessionRequest, db: Ses
         raise HTTPException(status_code=400, detail="Invalid plan or price ID not configured")
 
     base_url = os.environ.get("APP_BASE_URL", "https://flipvault.netlify.app")
-    
+
+    # Try to get username from frontend (e.g., via header or body in production)
+    username = None
+    try:
+        # If you want to pass username from frontend, add it to the request body or headers
+        data = await current_request.json() if current_request else None
+        if data and "username" in data:
+            username = data["username"]
+    except Exception:
+        pass
+
+    # Fallback: username is not required for session creation, but needed for webhook
+    metadata = {"plan": request.plan}
+    if username:
+        metadata["username"] = username
+
     try:
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
@@ -321,6 +336,7 @@ async def create_checkout_session(request: StripeCheckoutSessionRequest, db: Ses
             mode='subscription',
             success_url=f"{base_url}/success?session_id={{CHECKOUT_SESSION_ID}}",
             cancel_url=f"{base_url}/pricing?canceled=true",
+            metadata=metadata
         )
         return {"sessionId": checkout_session.id}
     except stripe.error.StripeError as e:
@@ -382,3 +398,52 @@ def get_user_plan(username: str, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return {"plan": user.plan or "free"}
+
+# Stripe webhook endpoint for automatic plan updates
+from fastapi import Header
+
+@app.post("/webhook")
+async def stripe_webhook(request: Request, stripe_signature: str = Header(None), db: Session = Depends(get_db)):
+    payload = await request.body()
+    endpoint_secret = os.environ.get("STRIPE_WEBHOOK_SECRET")
+    event = None
+    try:
+        if endpoint_secret:
+            event = stripe.Webhook.construct_event(
+                payload, stripe_signature, endpoint_secret
+            )
+        else:
+            event = stripe.Event.construct_from(json.loads(payload), stripe.api_key)
+    except Exception as e:
+        print(f"Webhook error: {e}")
+        return JSONResponse(status_code=400, content={"error": str(e)})
+
+    # Handle the checkout.session.completed event
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
+        # You must pass user info (e.g., username) as metadata in the checkout session
+        username = session.get("metadata", {}).get("username")
+        plan = None
+        # Determine plan from price ID
+        price_id = session["display_items"][0]["price"] if "display_items" in session else None
+        # Or use session["metadata"]["plan"] if you set it in metadata
+        if "plan" in session.get("metadata", {}):
+            plan = session["metadata"]["plan"]
+        # Fallback: map price_id to plan
+        if not plan and price_id:
+            price_ids = {
+                os.environ.get("STRIPE_PRICE_PRO_LITE"): "pro-lite",
+                os.environ.get("STRIPE_PRICE_PRO"): "pro",
+                os.environ.get("STRIPE_PRICE_EXCLUSIVE"): "exclusive",
+            }
+            plan = price_ids.get(price_id)
+        if username and plan:
+            user = crud.get_user_by_username(db, username)
+            if user:
+                crud.update_user_plan(db, user_id=user.id, plan=plan)
+                print(f"Updated user {username} to plan {plan}")
+            else:
+                print(f"User {username} not found for webhook update")
+        else:
+            print(f"Missing username or plan in webhook: username={username}, plan={plan}")
+    return {"status": "success"}

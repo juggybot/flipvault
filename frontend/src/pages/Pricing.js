@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Container, Typography, Grid, Paper, Button, Box, AppBar, Toolbar, IconButton, Menu, MenuItem, CssBaseline, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import React, { useEffect, useState, useRef } from 'react';
+import { Container, Typography, Grid, Paper, Button, Box, AppBar, Toolbar, IconButton, Menu, MenuItem, CssBaseline, TextField } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Menu as MenuIcon } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
@@ -53,6 +53,10 @@ function Pricing() {
   const [error, setError] = useState(null);
   const [stripeInstance, setStripeInstance] = useState(null);
   const [stripeReady, setStripeReady] = useState(false); // NEW LINE
+  const [username, setUsername] = useState("");
+  const [manualUsername, setManualUsername] = useState("");
+  const [showUsernameInput, setShowUsernameInput] = useState(false);
+  const lastPlanRef = React.useRef(null);
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -83,6 +87,17 @@ function Pricing() {
     }
   }, []);
 
+  useEffect(() => {
+    // Try to get username from localStorage (if user is logged in)
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        if (parsed.username) setUsername(parsed.username);
+      } catch {}
+    }
+  }, []);
+
   const initializeStripe = () => {
     const stripePublicKey = process.env.REACT_APP_STRIPE_PUBLIC_KEY;
 
@@ -105,15 +120,23 @@ function Pricing() {
   const handleCheckout = async (plan) => {
     setLoading(true);
     setError(null);
+    lastPlanRef.current = plan;
+
+    // If not logged in, require username input
+    if (!username && !manualUsername) {
+      setShowUsernameInput(true);
+      setLoading(false);
+      setError("Please enter your FlipVault username to continue.");
+      return;
+    }
 
     try {
-      // Update to match your actual Heroku app URL
       const response = await fetch('https://flipvault-afea58153afb.herokuapp.com/create-checkout-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ plan }),
+        body: JSON.stringify({ plan, username: username || manualUsername }),
       });
 
       if (!response.ok) {
@@ -263,6 +286,34 @@ function Pricing() {
           <Typography color="error" sx={{ mt: 2 }}>
             {error}
           </Typography>
+        )}
+
+        {/* Username input for users not logged in */}
+        {showUsernameInput && (
+          <Box sx={{ mt: 4, mb: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              Enter your FlipVault username to continue
+            </Typography>
+            <input
+              type="text"
+              value={manualUsername}
+              onChange={e => setManualUsername(e.target.value)}
+              placeholder="Username"
+              style={{ padding: '10px', borderRadius: '6px', border: '1px solid #888', marginBottom: '10px', width: '250px', fontSize: '1rem' }}
+            />
+            <ModernButton
+              variant="contained"
+              color="primary"
+              disabled={loading || !manualUsername}
+              onClick={() => {
+                setShowUsernameInput(false);
+                setError(null);
+                handleCheckout(lastPlanRef.current);
+              }}
+            >
+              Continue to Payment
+            </ModernButton>
+          </Box>
         )}
       </Container>
     </ThemeProvider>
