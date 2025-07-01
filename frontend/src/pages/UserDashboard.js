@@ -31,7 +31,8 @@ const theme = createTheme({
 function UserDashboard() {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [username, setUsername] = useState('');
-  const [subscriptionDate, setSubscriptionDate] = useState(''); // Example date, replace with actual data
+  const [subscriptionDate, setSubscriptionDate] = useState('');
+  const [subscriptionEnd, setSubscriptionEnd] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -53,12 +54,29 @@ function UserDashboard() {
 
   useEffect(() => {
     let isMounted = true;
-
     const storedUsername = localStorage.getItem('username');
     if (isMounted && storedUsername) {
       setUsername(storedUsername);
+      // Fetch user info from backend
+      fetch(`/user/plan/${storedUsername}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.subscription_start) {
+            setSubscriptionDate(new Date(data.subscription_start).toLocaleString());
+          } else {
+            setSubscriptionDate('N/A');
+          }
+          if (data.subscription_end) {
+            setSubscriptionEnd(new Date(data.subscription_end).toLocaleString());
+          } else {
+            setSubscriptionEnd('N/A');
+          }
+        })
+        .catch(() => {
+          setSubscriptionDate('N/A');
+          setSubscriptionEnd('N/A');
+        });
     }
-
     return () => {
       isMounted = false;
     };
@@ -240,9 +258,9 @@ function UserDashboard() {
                 }}
               >
                 <Typography variant="h6" gutterBottom fontWeight="medium">
-                  Subscription Date
+                  Subscription End
                 </Typography>
-                <Typography variant="body1">{subscriptionDate}</Typography>
+                <Typography variant="body1">{subscriptionEnd}</Typography>
               </Paper>
             </Grid>
             <Grid item xs={12} md={6}>

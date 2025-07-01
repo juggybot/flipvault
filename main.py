@@ -397,7 +397,11 @@ def get_user_plan(username: str, db: Session = Depends(get_db)):
     user = crud.get_user_by_username(db, username)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return {"plan": user.plan or "free"}
+    return {
+        "plan": user.plan or "free",
+        "subscription_start": user.subscription_start.isoformat() if user.subscription_start else None,
+        "subscription_end": user.subscription_end.isoformat() if user.subscription_end else None
+    }
 
 # Stripe webhook endpoint for automatic plan updates
 from fastapi import Header
@@ -421,15 +425,12 @@ async def stripe_webhook(request: Request, stripe_signature: str = Header(None),
     # Handle the checkout.session.completed event
     if event["type"] == "checkout.session.completed":
         session = event["data"]["object"]
-        # You must pass user info (e.g., username) as metadata in the checkout session
         username = session.get("metadata", {}).get("username")
         plan = None
         # Determine plan from price ID
         price_id = session["display_items"][0]["price"] if "display_items" in session else None
-        # Or use session["metadata"]["plan"] if you set it in metadata
         if "plan" in session.get("metadata", {}):
             plan = session["metadata"]["plan"]
-        # Fallback: map price_id to plan
         if not plan and price_id:
             price_ids = {
                 os.environ.get("STRIPE_PRICE_PRO_LITE"): "pro-lite",
@@ -440,8 +441,19 @@ async def stripe_webhook(request: Request, stripe_signature: str = Header(None),
         if username and plan:
             user = crud.get_user_by_username(db, username)
             if user:
-                crud.update_user_plan(db, user_id=user.id, plan=plan)
-                print(f"Updated user {username} to plan {plan}")
+                # Set subscription_start to now, and subscription_end based on plan
+                import datetime
+                now = datetime.datetime.utcnow()
+                if plan == "pro-lite":
+                    end = now + datetime.timedelta(days=7)
+                elif plan == "pro":
+                    end = now + datetime.timedelta(days=30)
+                elif plan == "exclusive":
+                    end = None  # Lifetime
+                else:
+                    end = None
+                crud.update_user_subscription(db, user_id=user.id, plan=plan, start=now, end=end)
+                print(f"Updated user {username} to plan {plan} with subscription_start {now} and subscription_end {end}")
             else:
                 print(f"User {username} not found for webhook update")
         else:

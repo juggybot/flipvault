@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from . import models
 import json  # Import JSON for serialization
 from .models import Product
+import datetime  # Import datetime for subscription dates
 
 def create_product(db: Session, name: str, image_url: str):
     db_product = Product(name=name, image_url=image_url)
@@ -57,6 +58,19 @@ def update_user_plan(db: Session, user_id: int, plan: str):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if user:
         user.plan = plan
+        db.commit()
+        db.refresh(user)
+        return user
+    return None
+
+def update_user_subscription(db: Session, user_id: int, plan: str, start: datetime.datetime = None, end: datetime.datetime = None):
+    user = db.query(models.User).filter(models.User.id == user_id).first()
+    if user:
+        user.plan = plan
+        if start:
+            user.subscription_start = start
+        if end:
+            user.subscription_end = end
         db.commit()
         db.refresh(user)
         return user
