@@ -61,20 +61,15 @@ function UserDashboard() {
       fetch(`/user/plan/${storedUsername}`)
         .then(res => res.json())
         .then(data => {
-          if (data.subscription_start) {
-            setSubscriptionDate(new Date(data.subscription_start).toLocaleString());
-          } else {
-            setSubscriptionDate('N/A');
-          }
           if (data.subscription_end) {
             setSubscriptionEnd(new Date(data.subscription_end).toLocaleString());
           } else {
-            setSubscriptionEnd('N/A');
+            setSubscriptionEnd('LIFETIME');
           }
         })
         .catch(() => {
           setSubscriptionDate('N/A');
-          setSubscriptionEnd('N/A');
+          setSubscriptionEnd('LIFETIME');
         });
     }
     return () => {

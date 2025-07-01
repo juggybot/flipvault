@@ -141,6 +141,15 @@ def init_db():
                         print("Added 'subscription_end' column to 'users' table")
                 except Exception as e:
                     print(f"Error adding subscription_end column: {e}")
+
+            # Add stripe_subscription_id column if it doesn't exist
+            if 'stripe_subscription_id' not in user_columns:
+                try:
+                    with engine.connect() as conn:
+                        conn.execute(text("ALTER TABLE users ADD COLUMN stripe_subscription_id VARCHAR(255)"))
+                        print("Added 'stripe_subscription_id' column to 'users' table")
+                except Exception as e:
+                    print(f"Error adding stripe_subscription_id column: {e}")
         else:
             print("Users table not found, but will be created on first application run")
             

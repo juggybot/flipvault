@@ -427,6 +427,7 @@ async def stripe_webhook(request: Request, stripe_signature: str = Header(None),
         session = event["data"]["object"]
         username = session.get("metadata", {}).get("username")
         plan = None
+        subscription_id = session.get("subscription")  # Stripe subscription ID
         # Determine plan from price ID
         price_id = session["display_items"][0]["price"] if "display_items" in session else None
         if "plan" in session.get("metadata", {}):
@@ -453,9 +454,31 @@ async def stripe_webhook(request: Request, stripe_signature: str = Header(None),
                 else:
                     end = None
                 crud.update_user_subscription(db, user_id=user.id, plan=plan, start=now, end=end)
-                print(f"Updated user {username} to plan {plan} with subscription_start {now} and subscription_end {end}")
+                user.stripe_subscription_id = subscription_id  # Save Stripe subscription ID
+                db.commit()
+                print(f"Updated user {username} to plan {plan} with subscription_start {now} and subscription_end {end} and subscription_id {subscription_id}")
             else:
                 print(f"User {username} not found for webhook update")
         else:
             print(f"Missing username or plan in webhook: username={username}, plan={plan}")
     return {"status": "success"}
+
+class CancelSubscriptionRequest(BaseModel):
+    username: str
+
+@app.post("/cancel-subscription")
+def cancel_subscription(request: CancelSubscriptionRequest, db: Session = Depends(get_db)):
+    user = crud.get_user_by_username(db, request.username)
+    if not user or not user.stripe_subscription_id:
+        raise HTTPException(status_code=404, detail="User or subscription not found")
+    try:
+        # Cancel the Stripe subscription immediately
+        stripe.Subscription.delete(user.stripe_subscription_id)
+        # Update user plan and subscription fields
+        crud.update_user_subscription(db, user_id=user.id, plan="free", start=None, end=None)
+        user.stripe_subscription_id = None
+        db.commit()
+        return {"message": "Subscription cancelled successfully"}
+    except Exception as e:
+        print(f"Error cancelling subscription: {e}")
+        raise HTTPException(status_code=500, detail="Failed to cancel subscription")

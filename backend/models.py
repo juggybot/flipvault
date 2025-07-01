@@ -28,3 +28,4 @@ class User(Base):
     plan = Column(String, default="free")  # Possible values: "free", "pro-lite", "pro", "exclusive"
     subscription_start = Column(DateTime, nullable=True)
     subscription_end = Column(DateTime, nullable=True)
+    stripe_subscription_id = Column(String, nullable=True)  # Add this line

@@ -78,13 +78,16 @@ function Settings() {
       const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/cancel-subscription`, {
         method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
         },
+        body: JSON.stringify({ username }),
       });
       if (response.ok) {
         alert('Subscription cancelled successfully');
       } else {
-        throw new Error('Failed to cancel subscription');
+        const data = await response.json();
+        throw new Error(data.detail || 'Failed to cancel subscription');
       }
     } catch (error) {
       console.error('Error:', error);
@@ -232,13 +235,6 @@ function Settings() {
                   onClick={handleCancelSubscription}
                 >
                   Cancel Subscription
-                </ModernButton>
-                <ModernButton 
-                  variant="contained" 
-                  color="primary" 
-                  onClick={() => window.location.href = '/pricing'}
-                >
-                  Upgrade Subscription
                 </ModernButton>
               </Box>
             </Box>
