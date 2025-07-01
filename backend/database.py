@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, inspect
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
@@ -58,9 +58,9 @@ def init_db():
                 try:
                     with engine.connect() as conn:
                         if DATABASE_URL.startswith('sqlite'):
-                            conn.execute("ALTER TABLE products ADD COLUMN popular_keywords TEXT")
+                            conn.execute(text("ALTER TABLE products ADD COLUMN popular_keywords TEXT"))
                         else:  # PostgreSQL
-                            conn.execute("ALTER TABLE products ADD COLUMN popular_keywords TEXT")
+                            conn.execute(text("ALTER TABLE products ADD COLUMN popular_keywords TEXT"))
                         print("Added 'popular_keywords' column to 'products' table")
                 except Exception as e:
                     print(f"Error adding column: {e}")
@@ -123,9 +123,9 @@ def init_db():
                 try:
                     with engine.connect() as conn:
                         if DATABASE_URL.startswith('sqlite'):
-                            conn.execute("ALTER TABLE users ADD COLUMN subscription_start DATETIME")
+                            conn.execute(text("ALTER TABLE users ADD COLUMN subscription_start DATETIME"))
                         else:  # PostgreSQL
-                            conn.execute("ALTER TABLE users ADD COLUMN subscription_start TIMESTAMP")
+                            conn.execute(text("ALTER TABLE users ADD COLUMN subscription_start TIMESTAMP"))
                         print("Added 'subscription_start' column to 'users' table")
                 except Exception as e:
                     print(f"Error adding subscription_start column: {e}")
@@ -135,9 +135,9 @@ def init_db():
                 try:
                     with engine.connect() as conn:
                         if DATABASE_URL.startswith('sqlite'):
-                            conn.execute("ALTER TABLE users ADD COLUMN subscription_end DATETIME")
+                            conn.execute(text("ALTER TABLE users ADD COLUMN subscription_end DATETIME"))
                         else:  # PostgreSQL
-                            conn.execute("ALTER TABLE users ADD COLUMN subscription_end TIMESTAMP")
+                            conn.execute(text("ALTER TABLE users ADD COLUMN subscription_end TIMESTAMP"))
                         print("Added 'subscription_end' column to 'users' table")
                 except Exception as e:
                     print(f"Error adding subscription_end column: {e}")
