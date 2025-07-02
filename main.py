@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks, Body, Request
+from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks, Body, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from backend.database import SessionLocal, init_db
@@ -357,9 +357,9 @@ async def create_checkout_session(request: StripeCheckoutSessionRequest, db: Ses
 class CurrencyConversionResponse(BaseModel):
     convertedPrice: float
 
-# Health check endpoint
 @app.get("/health")
-def health_check():
+def health_check(response: Response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
     return {"status": "ok"}
 
 class UserResponse(BaseModel):
