@@ -16,19 +16,27 @@ import stripe
 import os
 import httpx
 import datetime
+import logging
 
 app = FastAPI()
+
+# Set up basic logging to file and console
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)s %(name)s %(message)s',
+    handlers=[
+        logging.FileHandler("app.log"),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
 # Update the CORS middleware to handle all required headers and methods
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",
         "https://flipvault.netlify.app",
         "https://www.flipvault.vip",
-        "https://flipvault-738b0b011a0f.herokuapp.com",
-        "https://flipvault-afea58153afb.herokuapp.com",
-        "https://flipvault.herokuapp.com"
     ],
     allow_credentials=True,  # Changed to True since we're using credentials
     allow_methods=["*"],
@@ -40,9 +48,9 @@ app.add_middleware(
 async def startup_event():
     try:
         init_db()
-        print("Database initialized successfully")
+        logger.info("Database initialized successfully")
     except Exception as e:
-        print(f"Error initializing database: {e}")
+        logger.error(f"Error initializing database: {e}")
         # Don't raise exception here to prevent app from crashing
 
 # Dependency to get the database session
@@ -185,7 +193,7 @@ def create_product(product: ProductCreate, db: Session = Depends(get_db), creden
     except HTTPException as e:
         raise e
     except Exception as e:
-        print(f"Error creating product: {e}")
+        logger.error(f"Error creating product: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.delete("/products/{product_id}/delete")
@@ -201,7 +209,7 @@ def read_products(skip: int = 0, limit: int = 15, db: Session = Depends(get_db))
     try:
         return crud.get_products(db, skip=skip, limit=limit)
     except Exception as e:
-        print(f"Error retrieving products: {e}")
+        logger.error(f"Error retrieving products: {e}")
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.get("/products/{product_id}", response_model=ProductResponse)
@@ -233,7 +241,7 @@ def read_product(product_id: int, db: Session = Depends(get_db)):
         }
         return product_dict
     except Exception as e:
-        print(f"Error retrieving product {product_id}: {e}")
+        logger.error(f"Error retrieving product {product_id}: {e}")
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.get("/search/")
@@ -242,7 +250,7 @@ def search_products(query: str, db: Session = Depends(get_db)):
         products = db.query(models.Product).filter(models.Product.name.ilike(f"%{query}%")).all()
         return products
     except Exception as e:
-        print(f"Error searching products: {e}")
+        logger.error(f"Error searching products: {e}")
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.post("/products/scrape")
@@ -253,10 +261,10 @@ def scrape_products(background_tasks: BackgroundTasks, credentials: HTTPBasicCre
         background_tasks.add_task(run_scraper)
         return {"message": "Scraper started in the background"}
     except ValueError as ve:
-        print(f"Proxy error: {str(ve)}")
+        logger.error(f"Proxy error: {str(ve)}")
         raise HTTPException(status_code=500, detail="Scraper configuration error: Check proxy settings")
     except Exception as e:
-        print(f"Error starting scraper: {e}")
+        logger.error(f"Error starting scraper: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/products/scrape/{product_id}")
@@ -266,7 +274,7 @@ def scrape_product(product_id: int, background_tasks: BackgroundTasks, credentia
         background_tasks.add_task(run_scraper, product_id)  # Run the scraper in the background for a specific product
         return {"message": f"Scraper started in the background for product ID {product_id}"}
     except Exception as e:
-        print(f"Error starting scraper for product {product_id}: {e}")
+        logger.error(f"Error starting scraper for product {product_id}: {e}")
         return {"message": f"Error starting scraper: {str(e)}"}
 
 @app.get("/test/")
@@ -279,7 +287,7 @@ def update_database():
         init_db()
         return JSONResponse(content={"message": "Database updated successfully!"})
     except Exception as e:
-        print(f"Error updating database: {e}")
+        logger.error(f"Error updating database: {e}")
         return JSONResponse(content={"message": f"Database update failed: {str(e)}"}, status_code=500)
 
 # Initialize Stripe with appropriate error handling
@@ -293,7 +301,7 @@ try:
     if not stripe.api_key:
         raise ValueError("Stripe API key not set")
 except Exception as e:
-    print(f"Error initializing Stripe: {e}")
+    logger.error(f"Error initializing Stripe: {e}")
 
 class StripeCheckoutSessionRequest(BaseModel):
     plan: str
@@ -340,10 +348,10 @@ async def create_checkout_session(request: StripeCheckoutSessionRequest, db: Ses
         )
         return {"sessionId": checkout_session.id}
     except stripe.error.StripeError as e:
-        print(f"Stripe error: {e}")
+        logger.error(f"Stripe error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
-        print(f"Error creating checkout session: {e}")
+        logger.error(f"Error creating checkout session: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 class CurrencyConversionResponse(BaseModel):
@@ -352,7 +360,7 @@ class CurrencyConversionResponse(BaseModel):
 # Health check endpoint
 @app.get("/health")
 def health_check():
-    return {"status": "healthy"}
+    return {"status": "ok"}
 
 class UserResponse(BaseModel):
     id: int
@@ -419,7 +427,7 @@ async def stripe_webhook(request: Request, stripe_signature: str = Header(None),
         else:
             event = stripe.Event.construct_from(json.loads(payload), stripe.api_key)
     except Exception as e:
-        print(f"Webhook error: {e}")
+        logger.error(f"Webhook error: {e}")
         return JSONResponse(status_code=400, content={"error": str(e)})
 
     # Handle the checkout.session.completed event
@@ -456,11 +464,11 @@ async def stripe_webhook(request: Request, stripe_signature: str = Header(None),
                 crud.update_user_subscription(db, user_id=user.id, plan=plan, start=now, end=end)
                 user.stripe_subscription_id = subscription_id  # Save Stripe subscription ID
                 db.commit()
-                print(f"Updated user {username} to plan {plan} with subscription_start {now} and subscription_end {end} and subscription_id {subscription_id}")
+                logger.info(f"Updated user {username} to plan {plan} with subscription_start {now} and subscription_end {end} and subscription_id {subscription_id}")
             else:
-                print(f"User {username} not found for webhook update")
+                logger.warning(f"User {username} not found for webhook update")
         else:
-            print(f"Missing username or plan in webhook: username={username}, plan={plan}")
+            logger.warning(f"Missing username or plan in webhook: username={username}, plan={plan}")
     return {"status": "success"}
 
 class CancelSubscriptionRequest(BaseModel):
@@ -480,5 +488,5 @@ def cancel_subscription(request: CancelSubscriptionRequest, db: Session = Depend
         db.commit()
         return {"message": "Subscription cancelled successfully"}
     except Exception as e:
-        print(f"Error cancelling subscription: {e}")
+        logger.error(f"Error cancelling subscription: {e}")
         raise HTTPException(status_code=500, detail="Failed to cancel subscription")
