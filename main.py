@@ -17,6 +17,8 @@ import os
 import httpx
 import datetime
 import logging
+from fastapi.exception_handlers import RequestValidationError
+from fastapi.exceptions import HTTPException as FastAPIHTTPException
 
 app = FastAPI()
 
@@ -490,3 +492,17 @@ def cancel_subscription(request: CancelSubscriptionRequest, db: Session = Depend
     except Exception as e:
         logger.error(f"Error cancelling subscription: {e}")
         raise HTTPException(status_code=500, detail="Failed to cancel subscription")
+
+@app.exception_handler(FastAPIHTTPException)
+async def http_exception_handler(request: Request, exc: FastAPIHTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"message": exc.detail, "code": exc.status_code},
+    )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=422,
+        content={"message": "Validation error", "code": 422, "errors": exc.errors()},
+    )
