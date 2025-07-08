@@ -357,7 +357,7 @@ async def create_checkout_session(request: StripeCheckoutSessionRequest, db: Ses
 class CurrencyConversionResponse(BaseModel):
     convertedPrice: float
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 def health_check(response: Response):
     response.headers["Access-Control-Allow-Origin"] = "*"
     return {"status": "ok"}
