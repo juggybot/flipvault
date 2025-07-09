@@ -183,8 +183,12 @@ def login(login_request: LoginRequest, db: Session = Depends(get_db)):
 
 @app.post("/admin-login")
 def admin_login(login_request: LoginRequest):
-    if login_request.username != "juggy" or login_request.password != "Idus1234@@":
+    admin_username = os.environ.get("ADMIN_USERNAME")
+    admin_password = os.environ.get("ADMIN_PASSWORD")
+
+    if login_request.username != admin_username or login_request.password != admin_password:
         raise HTTPException(status_code=401, detail="Invalid admin credentials")
+
     return {"success": True, "message": "Admin login successful"}
 
 @app.post("/products/")

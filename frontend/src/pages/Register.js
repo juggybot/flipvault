@@ -50,6 +50,10 @@ const ModernButton = styled(Button)({
   },
 });
 
+function sanitizeInput(input) {
+  return input.trim();
+}
+
 function Register() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -64,15 +68,26 @@ function Register() {
     setError('');
     setLoading(true);
 
+    // Sanitize inputs
+    const cleanUsername = sanitizeInput(username);
+    const cleanPassword = sanitizeInput(password);
+    const cleanConfirmPassword = sanitizeInput(confirmPassword);
+
     // Validation
-    if (password.length < 8) {
+    if (cleanPassword.length < 8) {
       setError('Password must be at least 8 characters long');
       setLoading(false);
       return;
     }
 
-    if (password !== confirmPassword) {
+    if (cleanPassword !== cleanConfirmPassword) {
       setError('Passwords do not match');
+      setLoading(false);
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9_]+$/.test(cleanUsername)) {
+      setError('Username can only contain letters, numbers, and underscores');
       setLoading(false);
       return;
     }
@@ -84,13 +99,13 @@ function Register() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          username,
-          password,
+          username: cleanUsername,
+          password: cleanPassword,
         }),
       });
 
       const data = await response.json();
-      
+
       if (response.ok) {
         navigate('/login', { state: { message: 'Registration successful! Please log in.' } });
       } else {

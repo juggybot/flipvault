@@ -52,6 +52,10 @@ const ModernButton = styled(Button)({
   },
 });
 
+function sanitizeInput(input) {
+  return input.trim();
+}
+
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -62,14 +66,18 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(''); // Clear previous errors
-    
+
+    // Sanitize inputs
+    const cleanEmail = sanitizeInput(email);
+    const cleanPassword = sanitizeInput(password);
+
     try {
-      const result = await login(email, password);
+      const result = await login(cleanEmail, cleanPassword);
       console.log('[login result]', result);
       if (result.success) {
-        localStorage.setItem('username', email);
+        localStorage.setItem('username', cleanEmail);
         // Generate a simple token (base64 of username:timestamp)
-        const token = btoa(`${email}:${Date.now()}`);
+        const token = btoa(`${cleanEmail}:${Date.now()}`);
         localStorage.setItem('token', token);
         // Check if user has a free plan
         if (result.plan && result.plan.trim().toLowerCase() === 'free') {
@@ -85,7 +93,7 @@ function Login() {
       setError('Login failed. Please try again.');
     }
   };
-  
+
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
