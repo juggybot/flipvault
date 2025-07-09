@@ -247,8 +247,8 @@ function Settings() {
               <Typography variant="body2" sx={{ color: 'grey.300' }}>
                 Link your Discord account to sync with your current account.
               </Typography>
-              <ModernButton variant="outlined" sx={{ mt: 2 }} onClick={handleLinkDiscord}>
-                Link Discord
+              <ModernButton variant="outlined" sx={{ mt: 2 }} onClick={() => {}}>
+                COMING SOON
               </ModernButton>
             </Box>
           </Paper>

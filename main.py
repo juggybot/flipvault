@@ -483,18 +483,33 @@ class CancelSubscriptionRequest(BaseModel):
 @app.post("/cancel-subscription")
 def cancel_subscription(request: CancelSubscriptionRequest, db: Session = Depends(get_db)):
     user = crud.get_user_by_username(db, request.username)
-    if not user or not user.stripe_subscription_id:
-        raise HTTPException(status_code=404, detail="User or subscription not found")
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if not user.stripe_subscription_id:
+        raise HTTPException(status_code=400, detail="User does not have an active subscription")
+
     try:
         # Cancel the Stripe subscription immediately
         stripe.Subscription.delete(user.stripe_subscription_id)
-        # Update user plan and subscription fields
-        crud.update_user_subscription(db, user_id=user.id, plan="free", start=None, end=None)
+
+        # Update user's plan and reset subscription fields
+        crud.update_user_subscription(
+            db,
+            user_id=user.id,
+            plan="free",
+            start=None,
+            end=None
+        )
         user.stripe_subscription_id = None
         db.commit()
-        return {"message": "Subscription cancelled successfully"}
+
+        logger.info(f"Subscription cancelled for user {user.username}")
+        return {"message": "Subscription cancelled successfully", "status": "success"}
+
     except Exception as e:
-        logger.error(f"Error cancelling subscription: {e}")
+        logger.error(f"Error cancelling subscription for user {request.username}: {e}")
         raise HTTPException(status_code=500, detail="Failed to cancel subscription")
 
 @app.exception_handler(FastAPIHTTPException)

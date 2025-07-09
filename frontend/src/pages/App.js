@@ -90,6 +90,8 @@ function App() {
             <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
             <Route path="/register" element={<Register />} /> {/* Add register route */}
+            <Route path="/forgot-password" element={<div>Forgot Password Page</div>} />
+            <Route path="*" element={<div>404 Not Found</div>} />
           </Routes>
         </EnhancedErrorBoundary>
       </Router>
