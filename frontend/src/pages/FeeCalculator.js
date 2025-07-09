@@ -250,7 +250,7 @@ function FeeCalculatorPage() {
             {fee !== null && (
               <Box sx={{ mt: 2, p: 2, border: '1px solid', borderColor: 'grey.300', borderRadius: 1, backgroundColor: '#444', width: '100%' }}>
                 <Typography variant="h6" align="center" color="#fff">
-                  The fee for selling on {setMarketplace} is ${typeof fee === 'number' ? fee.toFixed(2) : 'N/A'}
+                  The fee for selling on {marketplace} is ${typeof fee === 'number' ? fee.toFixed(2) : 'N/A'}
                 </Typography>
               </Box>
             )}

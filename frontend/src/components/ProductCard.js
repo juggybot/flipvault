@@ -276,22 +276,32 @@ function ProductCard() {
           ) : (
             <>
               <Container maxWidth="sm" sx={{ mt: 2 }}>
-                {/* Replace loading states with LoadingState component */}
-                {!product.image_url ? (
-                  <LoadingState variant="skeleton" height={256} width={256} />
-                ) : (
-                  <img src={product.image_url} alt={product.name} />
-                )}
-                
-                <Typography variant="h4" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}>
-                  {product?.name ? (
-                    product.name
+                <Box sx={{ backgroundColor: '#333', color: '#fff', padding: 4, borderRadius: 2, flex: 1, mr: 2 }}>
+                  {!product.image_url ? (
+                    <LoadingState variant="skeleton" height={256} width={256} />
                   ) : (
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <CircularProgress size={24} sx={{ mr: 1 }} />
-                  </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+                      <img
+                        src={product.image_url}
+                        alt={product.name}
+                        style={{ maxWidth: '100%', height: 'auto', borderRadius: 8 }}
+                      />
+                    </Box>
                   )}
-                </Typography>
+
+                  <Typography
+                    variant="h4"
+                    sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 2 }}
+                  >
+                    {product?.name ? (
+                      product.name
+                    ) : (
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <CircularProgress size={24} sx={{ mr: 1 }} />
+                      </Box>
+                    )}
+                  </Typography>
+                </Box>
               </Container>
 
               <Container maxWidth="lg" sx={{ mt: 4, display: 'flex', justifyContent: 'space-between' }}>

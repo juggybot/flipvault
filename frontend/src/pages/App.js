@@ -13,6 +13,7 @@ import ProductCard from '../components/ProductCard';
 import AdminDashboard from './AdminDashboard';
 import AdminLogin from './AdminLogin'; 
 import Register from './Register'; // Import Register component
+import ForgotPassword from './ForgotPassword';
 import ProtectedRoute from '../components/ProtectedRoute';
 import EnhancedErrorBoundary from '../components/EnhancedErrorBoundary';
 
@@ -90,7 +91,7 @@ function App() {
             <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
             <Route path="/register" element={<Register />} /> {/* Add register route */}
-            <Route path="/forgot-password" element={<div>Forgot Password Page</div>} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="*" element={<div>404 Not Found</div>} />
           </Routes>
         </EnhancedErrorBoundary>
