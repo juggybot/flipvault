@@ -153,29 +153,48 @@ function ProductCard() {
   };
 
   const KeywordsList = ({ keywords, scores = [] }) => (
-    <Paper sx={{ p: 2, mb: 2 }}>
-      <Typography variant="h5" sx={{ mb: 1 }}>Top Keywords</Typography>
-      {keywords.length > 0 ? (
-        keywords.slice(0, 5).map((keyword, index) => (
-          <ListItem key={index} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 0' }}>
-            <ListItemText primary={capitalizeWords(keyword)} sx={{ flexGrow: 1 }} />
-            <Box sx={{ width: '50%', ml: 2 }}>
-              <LinearProgress
-                variant="determinate"
-                value={scores[index] || 0}
-                sx={{ height: 10 }}
-              />
-            </Box>
-          </ListItem>
-        ))
-      ) : (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <CircularProgress size={20} sx={{ mr: 1 }} />
-          Loading...
-        </Box>
-      )}
-    </Paper>
-  );
+  <Paper sx={{ p: 2, mb: 2 }}>
+    <Typography variant="h5" sx={{ mb: 1 }}>Top Keywords</Typography>
+    {keywords.length > 0 ? (
+      keywords.slice(0, 5).map((keyword, index) => (
+        <ListItem
+          key={index}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            // Remove justifyContent: 'space-between'
+            padding: '4px 0',
+            gap: 2,  // space between text and progress bar
+          }}
+        >
+          <ListItemText 
+            primary={capitalizeWords(keyword)} 
+            sx={{ 
+              // Give the text a fixed or max width so bars align
+              maxWidth: '45%', 
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              flexShrink: 0,
+            }} 
+          />
+          <Box sx={{ flexGrow: 1 }}>
+            <LinearProgress
+              variant="determinate"
+              value={scores[index] || 0}
+              sx={{ height: 10, borderRadius: 5 }}
+            />
+          </Box>
+        </ListItem>
+      ))
+    ) : (
+      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <CircularProgress size={20} sx={{ mr: 1 }} />
+        Loading...
+      </Box>
+    )}
+  </Paper>
+);
 
   const convertPrice = (price) => {
     if (price === null || price === undefined) {
