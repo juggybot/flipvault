@@ -161,8 +161,7 @@ function ProductCard() {
           key={index}
           sx={{
             display: 'flex',
-            alignItems: 'center',
-            // Remove justifyContent: 'space-between'
+            alignItems: 'flex-start', // align to top so bar aligns with first line
             padding: '4px 0',
             gap: 2,  // space between text and progress bar
           }}
@@ -170,15 +169,13 @@ function ProductCard() {
           <ListItemText 
             primary={capitalizeWords(keyword)} 
             sx={{ 
-              // Give the text a fixed or max width so bars align
-              maxWidth: '45%', 
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
+              maxWidth: '45%',   // fixed width so bars align
+              whiteSpace: 'normal',  // allow wrapping
+              overflowWrap: 'break-word',  // wrap long words
               flexShrink: 0,
             }} 
           />
-          <Box sx={{ flexGrow: 1 }}>
+          <Box sx={{ flexGrow: 1, mt: '6px' }}> {/* slight margin top to center vertically with wrapped text */}
             <LinearProgress
               variant="determinate"
               value={scores[index] || 0}

@@ -89,7 +89,7 @@ function Products() {
 
       // ✅ Filter out products with title "test product" (case-insensitive)
       const filteredProducts = data.filter(
-        product => product.title?.toLowerCase() !== 'test product'
+        product => product.title !== 'Test Product'
       );
 
       setProducts(filteredProducts);
