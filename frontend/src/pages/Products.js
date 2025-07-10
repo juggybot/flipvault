@@ -86,7 +86,13 @@ function Products() {
       }
 
       const data = await response.json();
-      setProducts(data);
+
+      // ✅ Filter out products with title "test product" (case-insensitive)
+      const filteredProducts = data.filter(
+        product => product.title?.toLowerCase() !== 'test product'
+      );
+
+      setProducts(filteredProducts);
     } catch (error) {
       console.error('Fetch error:', error);
     }
