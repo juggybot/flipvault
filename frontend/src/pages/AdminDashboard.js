@@ -1,9 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Container, Typography, Box, Tab, Tabs, TextField, Paper } from '@mui/material';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { createProduct, deleteProduct, scrapeProducts, scrapeProduct, updateUserPlanAdmin } from '../services/api';
 import ProductForm from '../components/ProductForm';
 import ProductList from '../components/ProductList';
+
+const theme = createTheme({
+  palette: {
+    mode: 'dark',
+    primary: {
+      main: '#90caf9',
+    },
+    secondary: {
+      main: '#f48fb1',
+    },
+    background: {
+      default: '#1c1c1c',
+      paper: '#2c2c2c',
+    },
+    text: {
+      primary: '#ffffff',
+    },
+  },
+});
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
