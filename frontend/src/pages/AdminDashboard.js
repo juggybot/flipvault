@@ -8,6 +8,7 @@ import ProductList from '../components/ProductList';
 const AdminDashboard = () => {
     const navigate = useNavigate();
     const [products, setProducts] = useState([]);
+    const [query, setQuery] = useState("");
     const [users, setUsers] = useState([]);
     const [isAuthenticated, setIsAuthenticated] = useState(() => {
         // Check localStorage on initial load
@@ -138,6 +139,30 @@ const AdminDashboard = () => {
         scrapeProduct(id);
     };
 
+      const handleSearch = async () => {
+    setLoading(true);
+    if (!query) {
+      alert('Search query cannot be empty');
+      setLoading(false);
+      return;
+    }
+    try {
+      const response = await fetch(`https://flipvault-afea58153afb.herokuapp.com/search/?query=${query}`);
+      const data = await response.json();
+      setProducts(data);
+    } catch (error) {
+      console.error('Search error:', error);
+    }
+    setLoading(false);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSearch();
+    }
+  };
+
     const handleDeleteUser = async (userId) => {
         try {
             const response = await fetch(`https://flipvault-afea58153afb.herokuapp.com/users/${userId}`, {
@@ -246,7 +271,49 @@ const AdminDashboard = () => {
                 </Tabs>
 
                 {currentTab === 0 && (
-                    <Box sx={{ width: '100%', mt: 3 }}>
+                    <Box sx={{ width: '100%', mt: 3 }}>                    
+                        <Paper
+                            sx={{
+                            p: 2,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            backgroundColor: '#333',
+                            color: '#fff',
+                            borderRadius: 2,
+                            }}
+                        >
+                            <TextField
+                            fullWidth
+                            variant="outlined"
+                            placeholder="Search products"
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            onKeyDown={handleKeyDown} // Trigger search on Enter
+                            sx={{
+                                mb: 2,
+                                backgroundColor: '#444',
+                                color: '#fff',
+                                borderRadius: 1,
+                                '& .MuiOutlinedInput-root': { color: '#fff' },
+                                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#555' },
+                                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#777' },
+                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.primary.main },
+                            }}
+                            />
+                            <ModernButton
+                            variant="contained"
+                            color="primary"
+                            onClick={handleSearch}
+                            disabled={loading}
+                            sx={{
+                                backgroundColor: '#1e88e5',
+                                '&:hover': { backgroundColor: '#1565c0' },
+                            }}
+                            >
+                            {loading ? <CircularProgress size={24} /> : 'SEARCH'}
+                            </ModernButton>
+                        </Paper>
                         <ProductForm onCreate={handleCreateProduct} />
                         <Button 
                             variant="contained" 
