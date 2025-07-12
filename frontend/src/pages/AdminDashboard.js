@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Container, Typography, Box, Tab, Tabs, TextField } from '@mui/material';
+import { Button, Container, Typography, Box, Tab, Tabs, TextField, Paper } from '@mui/material';
 import { createProduct, deleteProduct, scrapeProducts, scrapeProduct, updateUserPlanAdmin } from '../services/api';
 import ProductForm from '../components/ProductForm';
 import ProductList from '../components/ProductList';
