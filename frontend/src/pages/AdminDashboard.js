@@ -25,6 +25,19 @@ const theme = createTheme({
   },
 });
 
+// Styled Button Component
+const ModernButton = styled(Button)({
+  borderRadius: '8px',
+  padding: '12px 24px',
+  fontSize: '1rem',
+  fontWeight: 600,
+  boxShadow: 'none',
+  textTransform: 'none',
+  '&:hover': {
+    boxShadow: '0px 3px 5px rgba(0,0,0,0.2)',
+  },
+});
+
 const AdminDashboard = () => {
     const navigate = useNavigate();
     const [products, setProducts] = useState([]);
