@@ -61,15 +61,25 @@ const AdminDashboard = () => {
     }
   }, [isAuthenticated]);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    const adminUsername = process.env.ADMIN_USERNAME;
-    const adminPassword = process.env.ADMIN_PASSWORD;
-    if (credentials.username === adminUsername && credentials.password === adminPassword) {
-      localStorage.setItem('isAdminAuthenticated', 'true');
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/admin-login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: credentials.username,
+          password: credentials.password
+        }),
+      });
+
+      if (!res.ok) throw new Error("Invalid login");
+
+      localStorage.setItem("isAdminAuthenticated", "true");
       setIsAuthenticated(true);
-    } else {
-      alert('Invalid credentials');
+    } catch (err) {
+      alert("Login failed");
     }
   };
 
