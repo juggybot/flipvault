@@ -8,7 +8,6 @@ import Products from './Products';
 import Settings from './Settings';
 import Logout from './Logout';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import MenuIcon from '@mui/icons-material/Menu';
 import { requirePaidPlan } from '../services/api';
 
 const theme = createTheme({
