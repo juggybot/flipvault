@@ -65,7 +65,7 @@ const AdminDashboard = () => {
     e.preventDefault();
 
     try {
-      const res = await fetch(`${API_BASE_URL}/admin-login`, {
+      const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}/admin-login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -85,7 +85,7 @@ const AdminDashboard = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('https://flipvault-afea58153afb.herokuapp.com/users', {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/users`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
