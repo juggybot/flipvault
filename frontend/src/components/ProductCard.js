@@ -267,31 +267,33 @@ function ProductCard() {
       <EnhancedErrorBoundary>
         <CssBaseline />
         {isMobile && (
-        <AppBar
-          position="fixed"
-          sx={{
-            zIndex: theme.zIndex.drawer + 1,
-            background: 'linear-gradient(45deg, #333, #555)',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-          }}
-        >
-          <Toolbar>
-            <IconButton
-              color="inherit"
-              edge="start"
-              onClick={handleDrawerToggle}
-              sx={{ mr: 2 }}
-            >
-              <MenuIcon />
-            </IconButton>
-            <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
-              FlipVault
-            </Typography>
-            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-              {username}
-            </Typography>
-          </Toolbar>
-        </AppBar>
+          <AppBar
+            position="fixed"
+            sx={{
+              zIndex: theme.zIndex.drawer + 1,
+              background: 'linear-gradient(45deg, #333, #555)',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+            }}
+          >
+            <Toolbar>
+              {isMobile && (
+                <IconButton
+                  color="inherit"
+                  edge="start"
+                  onClick={handleDrawerToggle}
+                  sx={{ mr: 2 }}
+                >
+                  <MenuIcon />
+                </IconButton>
+              )}
+              <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
+                FlipVault
+              </Typography>
+              <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                {username}
+              </Typography>
+            </Toolbar>
+          </AppBar>
       )}
       <Drawer
           variant={isMobile ? 'temporary' : 'permanent'}

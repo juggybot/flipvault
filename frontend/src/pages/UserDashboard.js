@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Grid, Paper, Box, AppBar, Toolbar, IconButton, Menu, MenuItem, CssBaseline, Button, Avatar, Drawer, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
+import { Container, Typography, Grid, Paper, Box, AppBar, Toolbar, IconButton, Menu, MenuItem, CssBaseline, Button, Avatar, Drawer, List, ListItem, ListItemIcon, ListItemText, IconButton } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Menu as MenuIcon, Dashboard as DashboardIcon, ShoppingCart as ShoppingCartIcon, Settings as SettingsIcon, LocalShipping as LocalShippingIcon, People as PeopleIcon, ExitToApp as ExitToAppIcon, Calculate as CalculateIcon } from '@mui/icons-material';
 import { Link, Route, Routes, useNavigate } from 'react-router-dom';
@@ -7,6 +7,8 @@ import FeeCalculatorPage from './FeeCalculator'; // Import the new page
 import Products from './Products';
 import Settings from './Settings';
 import Logout from './Logout';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import MenuIcon from '@mui/icons-material/Menu';
 import { requirePaidPlan } from '../services/api';
 
 const theme = createTheme({
@@ -34,6 +36,12 @@ function UserDashboard() {
   const [subscriptionDate, setSubscriptionDate] = useState('');
   const [subscriptionEnd, setSubscriptionEnd] = useState('');
   const navigate = useNavigate();
+  const isMobile = useMediaQuery('(max-width:768px)');
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -78,6 +86,46 @@ function UserDashboard() {
   }, []);
 
   const drawerWidth = 240;
+  
+  const drawerContent = (
+    <>
+      <Toolbar />
+      <Box sx={{ overflow: 'auto' }}>
+        <List>
+          <ListItem button component={Link} to="/user-dashboard" sx={{ color: 'text.primary' }} onClick={isMobile ? handleDrawerToggle : undefined}>
+            <ListItemIcon sx={{ color: 'text.primary' }}>
+              <DashboardIcon />
+            </ListItemIcon>
+            <ListItemText primary="Dashboard" />
+          </ListItem>
+          <ListItem button component={Link} to="/products" sx={{ color: 'text.primary' }} onClick={isMobile ? handleDrawerToggle : undefined}>
+            <ListItemIcon sx={{ color: 'text.primary' }}>
+              <ShoppingCartIcon />
+            </ListItemIcon>
+            <ListItemText primary="Products" />
+          </ListItem>
+          <ListItem button component={Link} to="/fee-calculator" sx={{ color: 'text.primary' }} onClick={isMobile ? handleDrawerToggle : undefined}>
+            <ListItemIcon sx={{ color: 'text.primary' }}>
+              <CalculateIcon />
+            </ListItemIcon>
+            <ListItemText primary="Fee Calculator" />
+          </ListItem>
+          <ListItem button component={Link} to="/settings" sx={{ color: 'text.primary' }} onClick={isMobile ? handleDrawerToggle : undefined}>
+            <ListItemIcon sx={{ color: 'text.primary' }}>
+              <SettingsIcon />
+            </ListItemIcon>
+            <ListItemText primary="Settings" />
+          </ListItem>
+          <ListItem button component={Link} to="/logout" sx={{ color: 'text.primary' }} onClick={isMobile ? handleDrawerToggle : undefined}>
+            <ListItemIcon sx={{ color: 'text.primary' }}>
+              <ExitToAppIcon />
+            </ListItemIcon>
+            <ListItemText primary="Log Out" />
+          </ListItem>
+        </List>
+      </Box>
+    </>
+  ); 
 
   // New state to track best performing products over the last 24/48 hrs
   const [bestProducts, setBestProducts] = useState([]);
@@ -110,14 +158,16 @@ function UserDashboard() {
           }}
         >
           <Toolbar>
-            <IconButton
-              color="inherit"
-              edge="start"
-              onClick={handleDrawerToggle}
-              sx={{ mr: 2 }}
-            >
-              <MenuIcon />
-            </IconButton>
+            {isMobile && (
+              <IconButton
+                color="inherit"
+                edge="start"
+                onClick={handleDrawerToggle}
+                sx={{ mr: 2 }}
+              >
+                <MenuIcon />
+              </IconButton>
+            )}
             <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
               FlipVault
             </Typography>
