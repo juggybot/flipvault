@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button, Container, Typography, Box, Tab, Tabs, TextField, Paper } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { createProduct, deleteProduct, scrapeProducts, scrapeProduct, updateUserPlanAdmin } from '../services/api';
+import { styled } from '@mui/system';
 import ProductForm from '../components/ProductForm';
 import ProductList from '../components/ProductList';
 
