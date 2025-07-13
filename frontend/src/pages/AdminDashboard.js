@@ -63,8 +63,8 @@ const AdminDashboard = () => {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    const adminUsername = process.env.REACT_APP_ADMIN_USERNAME;
-    const adminPassword = process.env.REACT_APP_ADMIN_PASSWORD;
+    const adminUsername = process.env.ADMIN_USERNAME;
+    const adminPassword = process.env.ADMIN_PASSWORD;
     if (credentials.username === adminUsername && credentials.password === adminPassword) {
       localStorage.setItem('isAdminAuthenticated', 'true');
       setIsAuthenticated(true);
