@@ -22,7 +22,7 @@ from fastapi.exceptions import HTTPException as FastAPIHTTPException
 
 app = FastAPI()
 
-@app.middleware("http")
+''' @app.middleware("http")
 async def user_agent_filter(request: Request, call_next):
     user_agent = request.headers.get("User-Agent", "").lower()
 
@@ -34,7 +34,7 @@ async def user_agent_filter(request: Request, call_next):
     if any(pattern in user_agent for pattern in blocked_patterns):
         raise HTTPException(status_code=403, detail="Forbidden: suspicious User-Agent")
 
-    return await call_next(request)
+    return await call_next(request)'''
 
 # Set up basic logging to file and console
 logging.basicConfig(

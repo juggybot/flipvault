@@ -2,11 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import LoadingState from './LoadingState';
 import EnhancedErrorBoundary from './EnhancedErrorBoundary';
-import { Container, Typography, Paper, Box, AppBar, Toolbar, CssBaseline, Button, Drawer, List, ListItem, ListItemIcon, ListItemText, Tooltip, CircularProgress, LinearProgress } from '@mui/material';
+import { Container, Typography, Paper, Box, AppBar, Toolbar, CssBaseline, Button, Drawer, List, ListItem, ListItemIcon, ListItemText, Tooltip, CircularProgress, LinearProgress, IconButton } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Dashboard as DashboardIcon, ShoppingCart as ShoppingCartIcon, Settings as SettingsIcon, Calculate as CalculateIcon, ExitToApp as ExitToAppIcon } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { styled } from '@mui/system';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import MenuIcon from '@mui/icons-material/Menu';
 
 const theme = createTheme({
   palette: {
@@ -47,6 +49,12 @@ function ProductCard() {
   const [product, setProduct] = useState(null);
   const [currency, setCurrency] = useState(localStorage.getItem('currency') || 'USD');
   const [username, setUsername] = useState('');
+  const isMobile = useMediaQuery('(max-width:768px)');
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -111,6 +119,46 @@ function ProductCard() {
   }, [parsedProductId]);
 
   const drawerWidth = 240;
+
+  const drawerContent = (
+    <>
+      <Toolbar />
+      <Box sx={{ overflow: 'auto' }}>
+        <List>
+          <ListItem button component={Link} to="/user-dashboard" sx={{ color: 'text.primary' }} onClick={isMobile ? handleDrawerToggle : undefined}>
+            <ListItemIcon sx={{ color: 'text.primary' }}>
+              <DashboardIcon />
+            </ListItemIcon>
+            <ListItemText primary="Dashboard" />
+          </ListItem>
+          <ListItem button component={Link} to="/products" sx={{ color: 'text.primary' }} onClick={isMobile ? handleDrawerToggle : undefined}>
+            <ListItemIcon sx={{ color: 'text.primary' }}>
+              <ShoppingCartIcon />
+            </ListItemIcon>
+            <ListItemText primary="Products" />
+          </ListItem>
+          <ListItem button component={Link} to="/fee-calculator" sx={{ color: 'text.primary' }} onClick={isMobile ? handleDrawerToggle : undefined}>
+            <ListItemIcon sx={{ color: 'text.primary' }}>
+              <CalculateIcon />
+            </ListItemIcon>
+            <ListItemText primary="Fee Calculator" />
+          </ListItem>
+          <ListItem button component={Link} to="/settings" sx={{ color: 'text.primary' }} onClick={isMobile ? handleDrawerToggle : undefined}>
+            <ListItemIcon sx={{ color: 'text.primary' }}>
+              <SettingsIcon />
+            </ListItemIcon>
+            <ListItemText primary="Settings" />
+          </ListItem>
+          <ListItem button component={Link} to="/logout" sx={{ color: 'text.primary' }} onClick={isMobile ? handleDrawerToggle : undefined}>
+            <ListItemIcon sx={{ color: 'text.primary' }}>
+              <ExitToAppIcon />
+            </ListItemIcon>
+            <ListItemText primary="Log Out" />
+          </ListItem>
+        </List>
+      </Box>
+    </>
+  ); 
 
   const SearchVolumeItem = ({ country, flagUrl, searchVolume }) => (
     <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -218,9 +266,25 @@ function ProductCard() {
     <ThemeProvider theme={theme}>
       <EnhancedErrorBoundary>
         <CssBaseline />
-        <AppBar position="fixed" sx={{ zIndex: theme.zIndex.drawer + 1 }}>
+        {isMobile && (
+        <AppBar
+          position="fixed"
+          sx={{
+            zIndex: theme.zIndex.drawer + 1,
+            background: 'linear-gradient(45deg, #333, #555)',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+          }}
+        >
           <Toolbar>
-            <Typography variant="h6" style={{ flexGrow: 1 }}>
+            <IconButton
+              color="inherit"
+              edge="start"
+              onClick={handleDrawerToggle}
+              sx={{ mr: 2 }}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
               FlipVault
             </Typography>
             <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
@@ -228,60 +292,37 @@ function ProductCard() {
             </Typography>
           </Toolbar>
         </AppBar>
-        <Drawer
-          variant="permanent"
+      )}
+      <Drawer
+          variant={isMobile ? 'temporary' : 'permanent'}
+          open={isMobile ? mobileOpen : true}
+          onClose={handleDrawerToggle}
+          ModalProps={{
+            keepMounted: true, // Better open performance on mobile.
+          }}
           sx={{
             width: drawerWidth,
             flexShrink: 0,
-            [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box' },
+            '& .MuiDrawer-paper': {
+              width: drawerWidth,
+              boxSizing: 'border-box',
+              backgroundColor: '#262626',
+              borderRight: '1px solid rgba(255,255,255,0.12)',
+            },
           }}
         >
-          <Toolbar />
-          <Box sx={{ overflow: 'auto' }}>
-            <List>
-              <ListItem button component={Link} to="/user-dashboard" sx={{ color: 'text.primary' }}>
-                <ListItemIcon sx={{ color: 'text.primary' }}>
-                  <DashboardIcon />
-                </ListItemIcon>
-                <ListItemText primary="Dashboard" />
-              </ListItem>
-              <ListItem button component={Link} to="/products" sx={{ color: 'text.primary' }}>
-                <ListItemIcon sx={{ color: 'text.primary' }}>
-                  <ShoppingCartIcon />
-                </ListItemIcon>
-                <ListItemText primary="Products" />
-              </ListItem>
-              <ListItem button component={Link} to="/fee-calculator" sx={{ color: 'text.primary' }}>
-                <ListItemIcon sx={{ color: 'text.primary' }}>
-                  <CalculateIcon />
-                </ListItemIcon>
-                <ListItemText primary="Fee Calculator" />
-              </ListItem>
-              <ListItem button component={Link} to="/settings" sx={{ color: 'text.primary' }}>
-                <ListItemIcon sx={{ color: 'text.primary' }}>
-                  <SettingsIcon />
-                </ListItemIcon>
-                <ListItemText primary="Settings" />
-              </ListItem>
-              <ListItem button component={Link} to="/logout" sx={{ color: 'text.primary' }}>
-                <ListItemIcon sx={{ color: 'text.primary' }}>
-                  <ExitToAppIcon />
-                </ListItemIcon>
-                <ListItemText primary="Log Out" />
-              </ListItem>
-            </List>
-          </Box>
-        </Drawer>
-        <Box
-          component="main"
-          sx={{
-            flexGrow: 1,
-            p: 3,
-            marginLeft: `${drawerWidth}px`,
-            minHeight: '100vh',
-            backgroundColor: '#121212',
-          }}
-        >
+          {drawerContent}
+      </Drawer>
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: 3,
+          marginLeft: isMobile ? 0 : `${drawerWidth}px`,
+          minHeight: '100vh',
+          backgroundColor: '#121212',
+        }}
+      >
           <Toolbar />
           {error ? (
             <Typography color="error" sx={{ mt: 2, textAlign: 'center' }}>

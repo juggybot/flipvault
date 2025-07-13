@@ -100,118 +100,59 @@ function UserDashboard() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AppBar
-        position="fixed"
-        sx={{
-          zIndex: theme.zIndex.drawer + 1,
-          background: 'linear-gradient(45deg, #333, #555)',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-        }}
-      >
-        <Toolbar>
-          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
-            FlipVault
-          </Typography>
-          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-            {username}
-          </Typography>
-        </Toolbar>
-      </AppBar>
+      {isMobile && (
+        <AppBar
+          position="fixed"
+          sx={{
+            zIndex: theme.zIndex.drawer + 1,
+            background: 'linear-gradient(45deg, #333, #555)',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+          }}
+        >
+          <Toolbar>
+            <IconButton
+              color="inherit"
+              edge="start"
+              onClick={handleDrawerToggle}
+              sx={{ mr: 2 }}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
+              FlipVault
+            </Typography>
+            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+              {username}
+            </Typography>
+          </Toolbar>
+        </AppBar>
+      )}
       <Drawer
-        variant="permanent"
-        sx={{
-          width: drawerWidth,
-          flexShrink: 0,
-          '& .MuiDrawer-paper': {
+          variant={isMobile ? 'temporary' : 'permanent'}
+          open={isMobile ? mobileOpen : true}
+          onClose={handleDrawerToggle}
+          ModalProps={{
+            keepMounted: true, // Better open performance on mobile.
+          }}
+          sx={{
             width: drawerWidth,
-            boxSizing: 'border-box',
-            backgroundColor: '#262626',
-            borderRight: '1px solid rgba(255,255,255,0.12)',
-          },
-        }}
-      >
-        <Toolbar />
-        <Box sx={{ overflow: 'auto' }}>
-          <List>
-            <ListItem
-              button
-              component={Link}
-              to="/user-dashboard"
-              sx={{
-                color: 'text.primary',
-                '&:hover': { backgroundColor: 'rgba(144,202,249,0.1)' },
-              }}
-            >
-              <ListItemIcon sx={{ color: 'text.primary' }}>
-                <DashboardIcon />
-              </ListItemIcon>
-              <ListItemText primary="Dashboard" />
-            </ListItem>
-            <ListItem
-              button
-              component={Link}
-              to="/products"
-              sx={{
-                color: 'text.primary',
-                '&:hover': { backgroundColor: 'rgba(144,202,249,0.1)' },
-              }}
-            >
-              <ListItemIcon sx={{ color: 'text.primary' }}>
-                <ShoppingCartIcon />
-              </ListItemIcon>
-              <ListItemText primary="Products" />
-            </ListItem>
-            <ListItem
-              button
-              component={Link}
-              to="/fee-calculator"
-              sx={{
-                color: 'text.primary',
-                '&:hover': { backgroundColor: 'rgba(144,202,249,0.1)' },
-              }}
-            >
-              <ListItemIcon sx={{ color: 'text.primary' }}>
-                <CalculateIcon />
-              </ListItemIcon>
-              <ListItemText primary="Fee Calculator" />
-            </ListItem>
-            <ListItem
-              button
-              component={Link}
-              to="/settings"
-              sx={{
-                color: 'text.primary',
-                '&:hover': { backgroundColor: 'rgba(144,202,249,0.1)' },
-              }}
-            >
-              <ListItemIcon sx={{ color: 'text.primary' }}>
-                <SettingsIcon />
-              </ListItemIcon>
-              <ListItemText primary="Settings" />
-            </ListItem>
-            <ListItem
-              button
-              component={Link}
-              to="/logout"
-              sx={{
-                color: 'text.primary',
-                '&:hover': { backgroundColor: 'rgba(144,202,249,0.1)' },
-              }}
-            >
-              <ListItemIcon sx={{ color: 'text.primary' }}>
-                <ExitToAppIcon />
-              </ListItemIcon>
-              <ListItemText primary="Log Out" />
-            </ListItem>
-          </List>
-        </Box>
+            flexShrink: 0,
+            '& .MuiDrawer-paper': {
+              width: drawerWidth,
+              boxSizing: 'border-box',
+              backgroundColor: '#262626',
+              borderRight: '1px solid rgba(255,255,255,0.12)',
+            },
+          }}
+        >
+          {drawerContent}
       </Drawer>
       <Box
         component="main"
         sx={{
           flexGrow: 1,
           p: 3,
-          marginLeft: `${drawerWidth}px`,
+          marginLeft: isMobile ? 0 : `${drawerWidth}px`,
           minHeight: '100vh',
           backgroundColor: '#121212',
         }}
