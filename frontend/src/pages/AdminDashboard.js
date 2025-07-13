@@ -115,7 +115,7 @@ const AdminDashboard = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('https://flipvault-afea58153afb.herokuapp.com/products', {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/products`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -129,7 +129,7 @@ const AdminDashboard = () => {
 
   const handleCreateProduct = async (product) => {
     try {
-      const response = await fetch('https://flipvault-afea58153afb.herokuapp.com/products/', {
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/products/`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -180,7 +180,7 @@ const AdminDashboard = () => {
     }
     try {
       const response = await fetch(
-        `https://flipvault-afea58153afb.herokuapp.com/search/?query=${query}`
+        `${process.env.REACT_APP_API_BASE_URL}/search/?query=${query}`
       );
       const data = await response.json();
       setProducts(data);
@@ -200,7 +200,7 @@ const AdminDashboard = () => {
   const handleDeleteUser = async (userId) => {
     try {
       const response = await fetch(
-        `https://flipvault-afea58153afb.herokuapp.com/users/${userId}`,
+        `${process.env.REACT_APP_API_BASE_URL}/users/${userId}`,
         {
           method: 'DELETE',
           headers: {
