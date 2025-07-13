@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Container, Typography, Grid, Paper, Box, Button, TextField, CircularProgress
+  Container, Typography, Grid, Paper, Box, Button, TextField, CircularProgress, Tabs, Tab, AppBar, Toolbar
 } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { useNavigate } from 'react-router-dom';
+import { BrowserRouter, Link, Route, Routes, useNavigate } from 'react-router-dom';
 import { createProduct, deleteProduct, scrapeProducts, scrapeProduct, updateUserPlanAdmin } from '../services/api';
 import { styled } from '@mui/system';
 import ProductForm from '../components/ProductForm';
