@@ -147,63 +147,66 @@ function UserDashboard() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <AppBar
-        position="fixed"
-        sx={{
-          zIndex: theme.zIndex.drawer + 1,
-          background: 'linear-gradient(45deg, #333, #555)',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-          width: isMobile ? '100%' : `calc(100% - ${drawerWidth}px)`,
-          ml: isMobile ? 0 : `${drawerWidth}px`,
-        }}
-      >
-        <Toolbar>
-          {isMobile && (
-            <IconButton
-              color="inherit"
-              edge="start"
-              onClick={handleDrawerToggle}
-              sx={{ mr: 2 }}
-            >
-              <MenuIcon />
-            </IconButton>
-          )}
-          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
-            FlipVault
-          </Typography>
-          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-            {username}
-          </Typography>
-        </Toolbar>
-      </AppBar>
-      <Drawer
-          variant={isMobile ? 'temporary' : 'permanent'}
-          open={isMobile ? mobileOpen : true}
-          onClose={handleDrawerToggle}
-          ModalProps={{
-            keepMounted: true, // Better open performance on mobile.
-          }}
+        <AppBar
+          position="fixed"
           sx={{
-            width: drawerWidth,
-            flexShrink: 0,
-            '& .MuiDrawer-paper': {
-              width: drawerWidth,
-              boxSizing: 'border-box',
-              backgroundColor: '#262626',
-              borderRight: '1px solid rgba(255,255,255,0.12)',
-            },
+            zIndex: (theme) => theme.zIndex.drawer + 1,
+            width: isMobile ? '100%' : `calc(100% - ${drawerWidth}px)`,
+            ml: isMobile ? 0 : `${drawerWidth}px`,
+            background: 'linear-gradient(45deg, #333, #555)',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
           }}
         >
-          {drawerContent}
+          <Toolbar>
+            {isMobile && (
+              <IconButton
+                color="inherit"
+                edge="start"
+                onClick={handleDrawerToggle}
+                sx={{ mr: 2 }}
+              >
+                <MenuIcon />
+              </IconButton>
+            )}
+            <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
+              FlipVault
+            </Typography>
+            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+              Username
+            </Typography>
+          </Toolbar>
+        </AppBar>
+
+      <Drawer
+        variant={isMobile ? 'temporary' : 'permanent'}
+        open={isMobile ? mobileOpen : true}
+        onClose={handleDrawerToggle}
+        ModalProps={{ keepMounted: true }}
+        sx={{
+          width: drawerWidth,
+          flexShrink: 0,
+          '& .MuiDrawer-paper': {
+            width: drawerWidth,
+            boxSizing: 'border-box',
+            backgroundColor: '#262626',
+            borderRight: '1px solid rgba(255,255,255,0.12)',
+            zIndex: (theme) => theme.zIndex.drawer,
+          },
+        }}
+      >
+        {drawerContent}
       </Drawer>
+
       <Box
         component="main"
         sx={{
           flexGrow: 1,
           p: 3,
           marginLeft: isMobile ? 0 : `${drawerWidth}px`,
-          minHeight: '100vh',
+          mt: '64px', // height of AppBar to prevent content being hidden under it
           backgroundColor: '#121212',
+          minHeight: '100vh',
+          color: '#fff',
         }}
       >
         <Toolbar />

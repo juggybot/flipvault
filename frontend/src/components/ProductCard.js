@@ -269,11 +269,11 @@ function ProductCard() {
         <AppBar
           position="fixed"
           sx={{
-            zIndex: theme.zIndex.drawer + 1,
-            background: 'linear-gradient(45deg, #333, #555)',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+            zIndex: (theme) => theme.zIndex.drawer + 1,
             width: isMobile ? '100%' : `calc(100% - ${drawerWidth}px)`,
             ml: isMobile ? 0 : `${drawerWidth}px`,
+            background: 'linear-gradient(45deg, #333, #555)',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
           }}
         >
           <Toolbar>
@@ -291,38 +291,41 @@ function ProductCard() {
               FlipVault
             </Typography>
             <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-              {username}
+              Username
             </Typography>
           </Toolbar>
         </AppBar>
+
       <Drawer
-          variant={isMobile ? 'temporary' : 'permanent'}
-          open={isMobile ? mobileOpen : true}
-          onClose={handleDrawerToggle}
-          ModalProps={{
-            keepMounted: true, // Better open performance on mobile.
-          }}
-          sx={{
+        variant={isMobile ? 'temporary' : 'permanent'}
+        open={isMobile ? mobileOpen : true}
+        onClose={handleDrawerToggle}
+        ModalProps={{ keepMounted: true }}
+        sx={{
+          width: drawerWidth,
+          flexShrink: 0,
+          '& .MuiDrawer-paper': {
             width: drawerWidth,
-            flexShrink: 0,
-            '& .MuiDrawer-paper': {
-              width: drawerWidth,
-              boxSizing: 'border-box',
-              backgroundColor: '#262626',
-              borderRight: '1px solid rgba(255,255,255,0.12)',
-            },
-          }}
-        >
-          {drawerContent}
+            boxSizing: 'border-box',
+            backgroundColor: '#262626',
+            borderRight: '1px solid rgba(255,255,255,0.12)',
+            zIndex: (theme) => theme.zIndex.drawer,
+          },
+        }}
+      >
+        {drawerContent}
       </Drawer>
+
       <Box
         component="main"
         sx={{
           flexGrow: 1,
           p: 3,
           marginLeft: isMobile ? 0 : `${drawerWidth}px`,
-          minHeight: '100vh',
+          mt: '64px', // height of AppBar to prevent content being hidden under it
           backgroundColor: '#121212',
+          minHeight: '100vh',
+          color: '#fff',
         }}
       >
           <Toolbar />
