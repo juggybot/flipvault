@@ -219,7 +219,6 @@ function Products() {
             boxSizing: 'border-box',
             backgroundColor: '#262626',
             borderRight: '1px solid rgba(255,255,255,0.12)',
-            zIndex: (theme) => theme.zIndex.drawer,
           },
         }}
       >

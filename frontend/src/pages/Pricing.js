@@ -283,12 +283,6 @@ function Pricing() {
           </Grid>
         </Box>
 
-        {error && (
-          <Typography color="error" sx={{ mt: 2 }}>
-            {error}
-          </Typography>
-        )}
-
         {/* Username input for users not logged in */}
         <Dialog open={showUsernameInput} onClose={() => setShowUsernameInput(false)}>
           <DialogTitle>Enter your FlipVault username</DialogTitle>
