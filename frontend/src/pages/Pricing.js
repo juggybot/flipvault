@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Container, Typography, Grid, Paper, Button, Box, AppBar, Toolbar, IconButton, Menu, MenuItem, CssBaseline, TextField } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { Menu as MenuIcon } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { styled } from '@mui/system';
@@ -289,32 +290,34 @@ function Pricing() {
         )}
 
         {/* Username input for users not logged in */}
-        {showUsernameInput && (
-          <Box sx={{ mt: 4, mb: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <Typography variant="h6" sx={{ mb: 1 }}>
-              Enter your FlipVault username to continue
-            </Typography>
-            <input
+        <Dialog open={showUsernameInput} onClose={() => setShowUsernameInput(false)}>
+          <DialogTitle>Enter your FlipVault username</DialogTitle>
+          <DialogContent>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Username"
               type="text"
+              fullWidth
+              variant="standard"
               value={manualUsername}
-              onChange={e => setManualUsername(e.target.value)}
-              placeholder="Username"
-              style={{ padding: '10px', borderRadius: '6px', border: '1px solid #888', marginBottom: '10px', width: '250px', fontSize: '1rem' }}
+              onChange={(e) => setManualUsername(e.target.value)}
             />
-            <ModernButton
-              variant="contained"
-              color="primary"
-              disabled={loading || !manualUsername}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowUsernameInput(false)}>Cancel</Button>
+            <Button
               onClick={() => {
                 setShowUsernameInput(false);
                 setError(null);
                 handleCheckout(lastPlanRef.current);
               }}
+              disabled={!manualUsername}
             >
               Continue to Payment
-            </ModernButton>
-          </Box>
-        )}
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Container>
     </ThemeProvider>
   );

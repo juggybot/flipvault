@@ -201,7 +201,7 @@ function Products() {
               FlipVault
             </Typography>
             <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-              Username
+              {username}
             </Typography>
           </Toolbar>
         </AppBar>
@@ -232,7 +232,6 @@ function Products() {
           flexGrow: 1,
           p: 3,
           marginLeft: isMobile ? 0 : `${drawerWidth}px`,
-          mt: '64px', // height of AppBar to prevent content being hidden under it
           backgroundColor: '#121212',
           minHeight: '100vh',
           color: '#fff',
