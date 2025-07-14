@@ -186,6 +186,7 @@ function UserDashboard() {
           width: drawerWidth,
           flexShrink: 0,
           '& .MuiDrawer-paper': {
+            position: 'fixed',
             width: drawerWidth,
             boxSizing: 'border-box',
             backgroundColor: '#262626',
