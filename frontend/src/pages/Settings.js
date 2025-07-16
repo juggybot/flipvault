@@ -250,6 +250,7 @@ function Settings() {
                   <MenuItem value="USD">USD</MenuItem>
                   <MenuItem value="AUD">AUD</MenuItem>
                   <MenuItem value="EUR">EUR</MenuItem>
+                  <MenuItem value="GBP">GBP</MenuItem>
                 </Select>
               </FormControl>
             </Box>

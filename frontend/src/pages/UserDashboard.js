@@ -34,6 +34,7 @@ function UserDashboard() {
   const [username, setUsername] = useState('');
   const [subscriptionDate, setSubscriptionDate] = useState('');
   const [subscriptionEnd, setSubscriptionEnd] = useState('');
+  const [lastScrapedDate, setLastScrapedDate] = useState(null); // Add this line
   const navigate = useNavigate();
   const isMobile = useMediaQuery('(max-width:768px)');
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -84,6 +85,29 @@ function UserDashboard() {
     };
   }, []);
 
+  useEffect(() => {
+    let isMounted = true;
+    
+    const fetchLastScraped = async () => {
+      try {
+        const res = await fetch('/products/last-scraped');
+        const data = await res.json();
+        if (isMounted && data.lastScraped) {
+          setLastScrapedDate(new Date(data.lastScraped));
+        }
+      } catch (error) {
+        if (isMounted) {
+          setLastScrapedDate(null);
+        }
+      }
+    };
+
+    fetchLastScraped();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const drawerWidth = 240;
   
   const drawerContent = (
@@ -124,24 +148,6 @@ function UserDashboard() {
       </Box>
     </>
   ); 
-
-  // New state to track best performing products over the last 24/48 hrs
-  const [bestProducts, setBestProducts] = useState([]);
-
-  useEffect(() => {
-    // Simulate fetching best performing products from an API or database.
-    // Replace this simulation with an actual API call if available.
-    const fetchBestProducts = async () => {
-      // Dummy data representing products performing well in the last 24/48 hrs.
-      const data = [
-        { id: 1, name: "Product A", period: "24hrs", score: 85 },
-        { id: 2, name: "Product B", period: "48hrs", score: 90 },
-      ];
-      setBestProducts(data);
-    };
-
-    fetchBestProducts();
-  }, []);
 
   return (
     <ThemeProvider theme={theme}>
@@ -284,17 +290,13 @@ function UserDashboard() {
                 }}
               >
                 <Typography variant="h6" gutterBottom fontWeight="medium">
-                  Top Performing Products (Last 24/48 hrs)
+                  Last Scraped Date
                 </Typography>
-                {bestProducts.length ? (
-                  bestProducts.map((product) => (
-                    <Typography key={product.id} variant="body1">
-                      {product.name} ({product.period}) - Score: {product.score}
-                    </Typography>
-                  ))
-                ) : (
-                  <Typography variant="body1">No top performing products at the moment.</Typography>
-                )}
+                <Typography variant="body1" sx={{ mb: 2 }}>
+                  {lastScrapedDate 
+                    ? `Last scraped: ${lastScrapedDate.toLocaleString()}`
+                    : 'Scraping data not available'}
+                </Typography>                 
               </Paper>
             </Grid>
           </Grid>

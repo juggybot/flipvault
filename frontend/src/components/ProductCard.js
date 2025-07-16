@@ -249,6 +249,7 @@ function ProductCard() {
       USD: 1,
       EUR: 0.92, // Example rate, update as needed
       AUD: 1.52, // Example rate, update as needed
+      GBP: 0.78, // Example rate, update as needed
     };
 
     const convertedPrice = price * exchangeRates[currency];
