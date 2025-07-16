@@ -526,17 +526,13 @@ def cancel_subscription(request: CancelSubscriptionRequest, db: Session = Depend
         logger.error(f"Error cancelling subscription for user {request.username}: {e}")
         raise HTTPException(status_code=500, detail="Failed to cancel subscription")
 
-@app.get("/products/last-scraped")
+@app.get("/products-last-scraped")
 def get_latest_scraped_date(db: Session = Depends(get_db)):
     try:
         latest = db.query(models.Product.last_updated).order_by(models.Product.last_updated.desc()).first()
         if not latest or not latest.last_updated:
-            return JSONResponse(content={"lastScraped": None}, headers={"Cache-Control": "no-store"})
-
-        return JSONResponse(
-            content={"lastScraped": latest.last_updated.isoformat()},
-            headers={"Cache-Control": "no-store"}
-        )
+            return {"lastScraped": None}
+        return {"lastScraped": latest.last_updated.isoformat()}
     except Exception as e:
         logger.error(f"Error fetching latest last_updated: {e}")
         raise HTTPException(status_code=500, detail="Database error")
