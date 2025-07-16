@@ -146,76 +146,71 @@ function UserDashboard() {
 
   return (
     <ThemeProvider theme={theme}>
-  <CssBaseline />
+      <CssBaseline />
+      <AppBar
+        position="fixed"
+        sx={{
+          zIndex: (theme) => theme.zIndex.drawer + 1,  // Ensures appbar stays above drawer
+          width: '100%',  // Changed from conditional width
+          background: 'linear-gradient(45deg, #333, #555)',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+        }}
+      >
+        <Toolbar>
+          {isMobile && (
+            <IconButton
+              color="inherit"
+              edge="start"
+              onClick={handleDrawerToggle}
+              sx={{ mr: 2 }}
+            >
+              <MenuIcon />
+            </IconButton>
+          )}
+          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
+            FlipVault
+          </Typography>
+          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+            {username}
+          </Typography>
+        </Toolbar>
+      </AppBar>
 
-  {/* ✅ Add this wrapper */}
-  <Box sx={{ display: 'flex' }}>
-
-    {/* AppBar */}
-    <AppBar
-      position="fixed"
-      sx={{
-        zIndex: (theme) => theme.zIndex.drawer + 1,
-        width: isMobile ? '100%' : `calc(100% - ${drawerWidth}px)`,
-        ml: isMobile ? 0 : `${drawerWidth}px`,
-        background: 'linear-gradient(45deg, #333, #555)',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-      }}
-    >
-      <Toolbar>
-        {isMobile && (
-          <IconButton
-            color="inherit"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2 }}
-          >
-            <MenuIcon />
-          </IconButton>
-        )}
-        <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
-          FlipVault
-        </Typography>
-        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-          {username}
-        </Typography>
-      </Toolbar>
-    </AppBar>
-
-    {/* Drawer */}
-    <Drawer
-      variant={isMobile ? 'temporary' : 'permanent'}
-      open={isMobile ? mobileOpen : true}
-      onClose={handleDrawerToggle}
-      ModalProps={{ keepMounted: true }}
-      sx={{
-        width: drawerWidth,
-        flexShrink: 0,
-        '& .MuiDrawer-paper': {
-          position: 'fixed',
+      <Drawer
+        variant={isMobile ? 'temporary' : 'permanent'}
+        open={isMobile ? mobileOpen : true}
+        onClose={handleDrawerToggle}
+        ModalProps={{ keepMounted: true }}
+        sx={{
           width: drawerWidth,
-          boxSizing: 'border-box',
-          backgroundColor: '#262626',
-          borderRight: '1px solid rgba(255,255,255,0.12)',
-        },
-      }}
-    >
-      {drawerContent}
-    </Drawer>
+          flexShrink: 0,
+          '& .MuiDrawer-paper': {
+            width: drawerWidth,
+            boxSizing: 'border-box',
+            backgroundColor: '#262626',
+            borderRight: '1px solid rgba(255,255,255,0.12)',
+            zIndex: (theme) => theme.zIndex.appBar - 1,  // Drawer behind app bar
+            marginTop: '64px',  // Height of your app bar (adjust if needed)
+            height: 'calc(100vh - 64px)',  // Adjust height to account for app bar
+          },
+        }}
+      >
+        {drawerContent}
+      </Drawer>
 
-    {/* Main Content */}
-    <Box
-      component="main"
-      sx={{
-        flexGrow: 1,
-        p: 3,
-        marginLeft: isMobile ? 0 : `${drawerWidth}px`,
-        backgroundColor: '#121212',
-        minHeight: '100vh',
-        color: '#fff',
-      }}
-    >
-      <Toolbar /> {/* Adds space below AppBar */}
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: 3,
+          marginLeft: isMobile ? 0 : `${drawerWidth}px`,
+          marginTop: '64px',  // Same as app bar height
+          backgroundColor: '#121212',
+          minHeight: 'calc(100vh - 64px)',  // Adjust for app bar
+          color: '#fff',
+        }}
+      >
+        <Toolbar />
         <Container maxWidth="lg" sx={{ mt: 4 }}>
           <Typography variant="h4" sx={{ textAlign: 'center', mb: 2, color: '#fff', fontWeight: 'bold' }}>
             USER DASHBOARD
@@ -309,7 +304,6 @@ function UserDashboard() {
           </Routes>
         </Container>
       </Box>
-    </Box>
     </ThemeProvider>
   );
 }
