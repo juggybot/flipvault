@@ -88,9 +88,8 @@ function UserDashboard() {
   
   const drawerContent = (
     <>
-      <Toolbar sx={{ minHeight: '64px !important', padding: '0 !important' }} /> {/* Matches AppBar height with no padding */}
       <Box sx={{ overflow: 'auto' }}>
-        <List sx={{ paddingTop: 0 }}> {/* Remove top padding from List */}
+        <List>
           <ListItem button component={Link} to="/user-dashboard" sx={{ color: 'text.primary' }} onClick={isMobile ? handleDrawerToggle : undefined}>
             <ListItemIcon sx={{ color: 'text.primary' }}>
               <DashboardIcon />
