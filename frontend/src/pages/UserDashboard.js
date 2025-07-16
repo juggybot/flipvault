@@ -203,7 +203,6 @@ function UserDashboard() {
           flexGrow: 1,
           p: 3,
           marginLeft: isMobile ? 0 : `${drawerWidth}px`,
-          marginTop: '64px',  // Same as app bar height
           backgroundColor: '#121212',
           minHeight: 'calc(100vh - 64px)',  // Adjust for app bar
           color: '#fff',

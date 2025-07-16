@@ -135,7 +135,6 @@ function Products() {
 
   const drawerContent = (
     <>
-      <Toolbar />
       <Box sx={{ overflow: 'auto' }}>
         <List>
           <ListItem button component={Link} to="/user-dashboard" sx={{ color: 'text.primary' }} onClick={isMobile ? handleDrawerToggle : undefined}>
@@ -176,35 +175,34 @@ function Products() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-        <AppBar
-          position="fixed"
-          sx={{
-            zIndex: (theme) => theme.zIndex.drawer + 1,
-            width: isMobile ? '100%' : `calc(100% - ${drawerWidth}px)`,
-            ml: isMobile ? 0 : `${drawerWidth}px`,
-            background: 'linear-gradient(45deg, #333, #555)',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-          }}
-        >
-          <Toolbar>
-            {isMobile && (
-              <IconButton
-                color="inherit"
-                edge="start"
-                onClick={handleDrawerToggle}
-                sx={{ mr: 2 }}
-              >
-                <MenuIcon />
-              </IconButton>
-            )}
-            <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
-              FlipVault
-            </Typography>
-            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-              {username}
-            </Typography>
-          </Toolbar>
-        </AppBar>
+      <AppBar
+        position="fixed"
+        sx={{
+          zIndex: (theme) => theme.zIndex.drawer + 1,  // Ensures appbar stays above drawer
+          width: '100%',  // Changed from conditional width
+          background: 'linear-gradient(45deg, #333, #555)',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+        }}
+      >
+        <Toolbar>
+          {isMobile && (
+            <IconButton
+              color="inherit"
+              edge="start"
+              onClick={handleDrawerToggle}
+              sx={{ mr: 2 }}
+            >
+              <MenuIcon />
+            </IconButton>
+          )}
+          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
+            FlipVault
+          </Typography>
+          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+            {username}
+          </Typography>
+        </Toolbar>
+      </AppBar>
 
       <Drawer
         variant={isMobile ? 'temporary' : 'permanent'}
@@ -215,11 +213,13 @@ function Products() {
           width: drawerWidth,
           flexShrink: 0,
           '& .MuiDrawer-paper': {
-            position: 'fixed',
             width: drawerWidth,
             boxSizing: 'border-box',
             backgroundColor: '#262626',
             borderRight: '1px solid rgba(255,255,255,0.12)',
+            zIndex: (theme) => theme.zIndex.appBar - 1,  // Drawer behind app bar
+            marginTop: '64px',  // Height of your app bar (adjust if needed)
+            height: 'calc(100vh - 64px)',  // Adjust height to account for app bar
           },
         }}
       >
@@ -233,7 +233,7 @@ function Products() {
           p: 3,
           marginLeft: isMobile ? 0 : `${drawerWidth}px`,
           backgroundColor: '#121212',
-          minHeight: '100vh',
+          minHeight: 'calc(100vh - 64px)',  // Adjust for app bar
           color: '#fff',
         }}
       >
