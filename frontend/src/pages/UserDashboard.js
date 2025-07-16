@@ -204,8 +204,13 @@ function UserDashboard() {
           p: 3,
           marginLeft: isMobile ? 0 : `${drawerWidth}px`,
           backgroundColor: '#121212',
-          minHeight: 'calc(100vh - 64px)',  // Adjust for app bar
+          minHeight: '100vh',           // Full viewport height
+          height: '100%',               // Ensures full coverage
+          marginTop: '64px',            // Accounts for AppBar
+          paddingBottom: '64px',        // Accounts for potential footer
           color: '#fff',
+          boxSizing: 'border-box',      // Includes padding in height calculations
+          overflow: 'auto',             // Adds scroll if content exceeds viewport
         }}
       >
         <Toolbar />
