@@ -90,7 +90,7 @@ function UserDashboard() {
     
     const fetchLastScraped = async () => {
       try {
-        const res = await fetch('/products/last-scraped');
+        const res = await fetch('https://flipvault-afea58153afb.herokuapp.com/products/last-scraped');
         const data = await res.json();
         if (isMounted && data.lastScraped) {
           setLastScrapedDate(new Date(data.lastScraped));
