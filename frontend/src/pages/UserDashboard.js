@@ -294,7 +294,7 @@ function UserDashboard() {
                 </Typography>
                 <Typography variant="body1" sx={{ mb: 2 }}>
                   {lastScrapedDate 
-                    ? `Last scraped: ${lastScrapedDate.toLocaleString()}`
+                    ? `${lastScrapedDate.toLocaleString()}`
                     : 'Scraping data not available'}
                 </Typography>                 
               </Paper>

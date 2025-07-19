@@ -438,28 +438,27 @@ from fastapi import Header
 async def stripe_webhook(request: Request, stripe_signature: str = Header(None), db: Session = Depends(get_db)):
     payload = await request.body()
     endpoint_secret = os.environ.get("STRIPE_WEBHOOK_SECRET")
-    event = None
     try:
         if endpoint_secret:
-            event = stripe.Webhook.construct_event(
-                payload, stripe_signature, endpoint_secret
-            )
+            event = stripe.Webhook.construct_event(payload, stripe_signature, endpoint_secret)
         else:
             event = stripe.Event.construct_from(json.loads(payload), stripe.api_key)
     except Exception as e:
         logger.error(f"Webhook error: {e}")
         return JSONResponse(status_code=400, content={"error": str(e)})
 
-    # Handle the checkout.session.completed event
+    logger.debug(f"Stripe event: {json.dumps(event, indent=2)}")
+
     if event["type"] == "checkout.session.completed":
         session = event["data"]["object"]
         username = session.get("metadata", {}).get("username")
-        plan = None
-        subscription_id = session.get("subscription")  # Stripe subscription ID
-        # Determine plan from price ID
-        price_id = session["display_items"][0]["price"] if "display_items" in session else None
-        if "plan" in session.get("metadata", {}):
-            plan = session["metadata"]["plan"]
+        plan = session.get("metadata", {}).get("plan")
+        subscription_id = session.get("subscription")
+
+        # Fetch line items to get price ID (new API)
+        line_items = stripe.checkout.sessions.list_line_items(session["id"])
+        price_id = line_items.data[0].price.id if line_items.data else None
+
         if not plan and price_id:
             price_ids = {
                 os.environ.get("STRIPE_PRICE_PRO_LITE"): "pro-lite",
@@ -467,28 +466,28 @@ async def stripe_webhook(request: Request, stripe_signature: str = Header(None),
                 os.environ.get("STRIPE_PRICE_EXCLUSIVE"): "exclusive",
             }
             plan = price_ids.get(price_id)
+
         if username and plan:
             user = crud.get_user_by_username(db, username)
             if user:
-                # Set subscription_start to now, and subscription_end based on plan
-                import datetime
                 now = datetime.datetime.utcnow()
                 if plan == "pro-lite":
                     end = now + datetime.timedelta(days=7)
                 elif plan == "pro":
                     end = now + datetime.timedelta(days=30)
                 elif plan == "exclusive":
-                    end = None  # Lifetime
+                    end = None
                 else:
                     end = None
-                crud.update_user_subscription(db, user_id=user.id, plan=plan, start=now, end=end)
-                user.stripe_subscription_id = subscription_id  # Save Stripe subscription ID
+
+                crud.update_user_subscription(db, user_id=user.id, plan=plan, start=now, end=end, stripe_subscription_id=subscription_id)
                 db.commit()
-                logger.info(f"Updated user {username} to plan {plan} with subscription_start {now} and subscription_end {end} and subscription_id {subscription_id}")
+                logger.info(f"Updated user {username} to plan {plan} with subscription {subscription_id}")
             else:
-                logger.warning(f"User {username} not found for webhook update")
+                logger.warning(f"User {username} not found")
         else:
-            logger.warning(f"Missing username or plan in webhook: username={username}, plan={plan}")
+            logger.warning(f"Missing username or plan in webhook metadata")
+
     return {"status": "success"}
 
 class CancelSubscriptionRequest(BaseModel):
