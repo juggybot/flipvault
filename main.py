@@ -312,7 +312,7 @@ def update_database():
 
 # Initialize Stripe with appropriate error handling
 try:
-    stripe_env = os.environ.get("STRIPE_ENVIRONMENT", "production")
+    stripe_env = os.environ.get("STRIPE_ENVIRONMENT", "test")
     if stripe_env == "test":
         stripe.api_key = os.environ.get("STRIPE_TEST_SECRET_KEY")
     else:
