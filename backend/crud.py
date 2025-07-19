@@ -63,7 +63,7 @@ def update_user_plan(db: Session, user_id: int, plan: str):
         return user
     return None
 
-def update_user_subscription(db: Session, user_id: int, plan: str, start: datetime.datetime = None, end: datetime.datetime = None):
+def update_user_subscription(db: Session, user_id: int, plan: str, start: datetime.datetime = None, end: datetime.datetime = None, stripe_subscription_id: str = None):
     user = db.query(models.User).filter(models.User.id == user_id).first()
     if user:
         user.plan = plan
@@ -71,6 +71,8 @@ def update_user_subscription(db: Session, user_id: int, plan: str, start: dateti
             user.subscription_start = start
         if end:
             user.subscription_end = end
+        if stripe_subscription_id:
+            user.stripe_subscription_id = stripe_subscription_id
         db.commit()
         db.refresh(user)
         return user
