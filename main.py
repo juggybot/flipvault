@@ -340,7 +340,7 @@ async def create_checkout_session(request: StripeCheckoutSessionRequest, db: Ses
     if request.plan not in price_ids or not price_ids[request.plan]:
         raise HTTPException(status_code=400, detail="Invalid plan or price ID not configured")
 
-    base_url = os.environ.get("APP_BASE_URL", "https://flipvault.netlify.app")
+    base_url = os.environ.get("APP_BASE_URL", "https://flipvault.netlify.app").rstrip('/')
 
     # Try to get username from frontend (e.g., via header or body in production)
     username = None
