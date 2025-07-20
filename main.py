@@ -456,7 +456,7 @@ async def stripe_webhook(request: Request, stripe_signature: str = Header(None),
         subscription_id = session.get("subscription")
 
         # Fetch line items to get price ID (new API)
-        line_items = stripe.checkout.sessions.list_line_items(session["id"])
+        line_items = stripe.checkout.Session.list_line_items(session["id"])
         price_id = line_items.data[0].price.id if line_items.data else None
 
         if not plan and price_id:
