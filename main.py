@@ -340,28 +340,34 @@ async def create_checkout_session(request: StripeCheckoutSessionRequest, db: Ses
     if request.plan not in price_ids or not price_ids[request.plan]:
         raise HTTPException(status_code=400, detail="Invalid plan or price ID not configured")
 
-    base_url = os.environ.get("APP_BASE_URL", "https://flipvault.netlify.app").rstrip('/')
+    price_id = price_ids[request.plan]
+    
+    # Detect mode based on plan - subscription for recurring, payment for one-time
+    if request.plan == "exclusive":
+        mode = "payment"
+    else:
+        mode = "subscription"
 
-    # Try to get username from frontend (e.g., via header or body in production)
+    # Get username metadata if passed
     username = None
     try:
-        # If you want to pass username from frontend, add it to the request body or headers
         data = await current_request.json() if current_request else None
         if data and "username" in data:
             username = data["username"]
     except Exception:
         pass
 
-    # Fallback: username is not required for session creation, but needed for webhook
     metadata = {"plan": request.plan}
     if username:
         metadata["username"] = username
 
+    base_url = os.environ.get("APP_BASE_URL", "https://flipvault.netlify.app").rstrip('/')
+
     try:
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
-            line_items=[{'price': price_ids[request.plan], 'quantity': 1}],
-            mode='subscription',
+            line_items=[{'price': price_id, 'quantity': 1}],
+            mode=mode,
             success_url=f"{base_url}/success?session_id={{CHECKOUT_SESSION_ID}}",
             cancel_url=f"{base_url}/pricing?canceled=true",
             metadata=metadata
