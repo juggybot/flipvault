@@ -223,7 +223,7 @@ function Pricing() {
           {[
             { plan: 'pro-lite', name: 'PRO LITE', price: '$10 USD', period: 'Per 7 days' },
             { plan: 'pro', name: 'PRO', price: '$17 USD', period: 'Per 30 days' },
-            { plan: 'exclusive', name: 'EXCLUSIVE', price: '$34 USD', period: 'Lifetime' }
+            { plan: 'exclusive', name: 'EXCLUSIVE', price: '$54 USD', period: 'Lifetime' }
           ].map(({ plan, name, price, period }) => (
             <Grid item xs={12} md={4} key={plan}>
               <Paper sx={{ p: 3, bgcolor: 'background.paper', borderRadius: 2, boxShadow: 3 }}>

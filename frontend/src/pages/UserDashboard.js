@@ -276,7 +276,10 @@ function UserDashboard() {
                 <Typography variant="h6" gutterBottom fontWeight="medium">
                   Update Log
                 </Typography>
-                <Typography variant="body1">V0.1 - Initial release</Typography>
+                <Typography variant="body1">
+                  V0.1 - Initial release
+                  V0.1.1 - Added more products
+                </Typography>
               </Paper>
             </Grid>
             <Grid item xs={12} md={6}>
