@@ -101,6 +101,7 @@ class ProductResponse(BaseModel):
     search_volume_au: Optional[str] = None
     search_volume_uk: Optional[str] = None
     popular_keywords: Optional[List[str]] = None
+    vendor: Optional[dict] = None  # Store as JSON object
     last_updated: Optional[str] = None
     
 class FeeCalculator:
@@ -257,6 +258,7 @@ def read_product(product_id: int, db: Session = Depends(get_db)):
             "search_volume_au": product.search_volume_au or "0",
             "search_volume_uk": product.search_volume_uk or "0",
             "popular_keywords": keywords,
+            "vendor": json.loads(product.vendor) if product.vendor else None,
             "last_updated": product.last_updated or None,
         }
         return product_dict

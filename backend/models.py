@@ -16,6 +16,7 @@ class Product(Base):
     search_volume_au = Column(String, nullable=True)
     search_volume_uk = Column(String, nullable=True)
     popular_keywords = Column(String, nullable=True)  # Store as JSON string
+    vendor = Column(String, nullable=True)  # Store as JSON string
     last_updated = Column(String, nullable=True)  # Store as ISO format date string
 
 class User(Base):

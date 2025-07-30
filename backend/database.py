@@ -81,6 +81,7 @@ def init_db():
                         search_volume_au="800",
                         search_volume_uk="900",
                         popular_keywords="test,product,example",
+                        vendor='{"name": "Test Vendor", "link": "https://example.com/vendor"}',
                         last_updated="2025-04-04"
                     )
                     db.add(test_product)

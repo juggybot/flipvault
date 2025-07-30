@@ -401,25 +401,54 @@ function ProductCard() {
                   )}
                 </Box>
 
-                <Box sx={{ backgroundColor: '#333', color: '#fff', padding: 4, borderRadius: 2, flex: 1, ml: 2 }}>
-                  <Typography variant="h4" sx={{ mb: 2 }}>
-                    Pricing and Listings
-                  </Typography>
-                  <Paper sx={{ p: 2, mb: 2 }}>
-                    <Typography variant="h5" sx={{ mb: 1 }}>Average Pricing</Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, ml: 2 }}>
+                  {/* Pricing and Listings */}
+                  <Box sx={{ backgroundColor: '#333', color: '#fff', padding: 4, borderRadius: 2, mb: 2 }}>
+                    <Typography variant="h4" sx={{ mb: 2 }}>
+                      Pricing and Listings
+                    </Typography>
+                    <Paper sx={{ p: 2, mb: 2 }}>
+                      <Typography variant="h5" sx={{ mb: 1 }}>Average Pricing</Typography>
                       <Typography variant="h6">Ebay</Typography>
                       <InfoItem value={product ? convertPrice(product.average_ebay_price) : null} />
-                  </Paper>
-                  <Paper sx={{ p: 2 }}>
-                    <InfoItem title="Ebay Sold Listings - 90 Days" value={product ? product.ebay_listings : null} />
-                    <InfoItem title="Ebay Total Sold - 90 Days" value={product ? convertPrice(product.ebay_sale_amount) : null} />
-                  </Paper>
+                    </Paper>
+                    <Paper sx={{ p: 2 }}>
+                      <InfoItem title="Ebay Sold Listings - 90 Days" value={product ? product.ebay_listings : null} />
+                      <InfoItem title="Ebay Total Sold - 90 Days" value={product ? convertPrice(product.ebay_sale_amount) : null} />
+                    </Paper>
+                  </Box>
+
+                  {/* Vendors */}
+                  <Box sx={{ backgroundColor: '#333', color: '#fff', padding: 4, borderRadius: 2 }}>
+                    <Typography variant="h4" sx={{ mb: 2 }}>
+                      Vendors
+                    </Typography>
+                    {product?.vendor && product.vendor.length ? (
+                      product.vendor.map((vendor, index) => (
+                        <Paper key={index} sx={{ p: 2, mb: 2 }}>
+                          <Typography variant="h6">{vendor.name}</Typography>
+                          <Typography
+                            component="a"
+                            href={vendor.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            sx={{ color: 'primary.main', display: 'block', mb: 1 }}
+                          >
+                            Visit Vendor
+                          </Typography>
+                        </Paper>
+                      ))
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">No vendor data available.</Typography>
+                    )}
+                  </Box>
                 </Box>
-              </Container>
-            </>
-          )}
-        </Box>
-      </EnhancedErrorBoundary>
+
+            </Container>
+          </>
+        )}
+      </Box>
+    </EnhancedErrorBoundary>
     </ThemeProvider>
   );
 }
