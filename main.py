@@ -5,7 +5,7 @@ from backend.database import SessionLocal, init_db
 from pydantic import BaseModel
 from backend import crud, models
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from typing import Optional, List
+from typing import Dict, Optional, List
 from backend.services.scraper import run_scraper
 from fastapi.responses import JSONResponse
 from sqlalchemy import create_engine 
@@ -101,7 +101,7 @@ class ProductResponse(BaseModel):
     search_volume_au: Optional[str] = None
     search_volume_uk: Optional[str] = None
     popular_keywords: Optional[List[str]] = None
-    vendor: Optional[dict] = None  # Store as JSON object
+    vendor: Optional[List[Dict]] = None 
     last_updated: Optional[str] = None
     
 class FeeCalculator:
