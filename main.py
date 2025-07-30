@@ -258,7 +258,7 @@ def read_product(product_id: int, db: Session = Depends(get_db)):
             "search_volume_au": product.search_volume_au or "0",
             "search_volume_uk": product.search_volume_uk or "0",
             "popular_keywords": keywords,
-            "vendor": json.loads(product.vendor) if product.vendor else None,
+            "vendor": product.vendor if product.vendor else None,
             "last_updated": product.last_updated or None,
         }
         return product_dict
