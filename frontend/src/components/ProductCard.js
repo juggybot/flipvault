@@ -428,7 +428,7 @@ function ProductCard() {
                       <Typography variant="h6">{product.vendor.name}</Typography>
                       <Typography
                         component="a"
-                        href={product.vendor.link}
+                        href={product.vendor && product.vendor.length > 0 ? product.vendor[0].link : '#'}
                         target="_blank"
                         rel="noopener noreferrer"
                         sx={{ color: 'primary.main', display: 'block', mb: 1 }}
