@@ -76,11 +76,11 @@ class MarketplaceScraper:
     def parse_ebay_results(self, html_content):
         soup = BeautifulSoup(html_content, 'html.parser')
 
-        price_results = soup.find_all('div', {'class': 's-item__info clearfix'})  # Div with price info
+        price_results = soup.find_all('div', {'class': 's-card__attribute-row'})  # Div with price info
         prices = []
         
         for item in price_results:
-            price_text = item.find('span', {'class': 's-item__price'})  # Span with item price
+            price_text = item.find('span', {'class': 'su-styled-text positive bold large-1 s-card__price'})  # Span with item price
             if price_text:
                 price_str = price_text.text.replace('$', '').replace(',', '').strip()  # Clean price string
                 try:
